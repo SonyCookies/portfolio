@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import Card from "../components/ui/Card";
+import Card from "@/components/ui/Card";
 
 export default function Hero() {
   const [showReveal, setShowReveal] = useState(false);
@@ -355,6 +355,8 @@ export default function Hero() {
                   "linear-gradient(180deg, #a855f7 8%, #7c3aed 55%, #6d28d9 100%)",
               }}
             >
+              {/* subtle rays while traveling to center */}
+              <div aria-hidden className="absolute -inset-4 cr-rayfield" style={{ opacity: 0.35 }} />
               {/* rim glow & rayfield only after centered */}
               {isCentered && (
                 <>

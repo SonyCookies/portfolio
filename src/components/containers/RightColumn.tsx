@@ -1,5 +1,5 @@
-import QuickNav from "./QuickNav";
-import Contact from "./Contact";
+import QuickNav from "@/components/QuickNav";
+import Contact from "@/components/sections/Contact";
 
 export default function RightColumn() {
   return (

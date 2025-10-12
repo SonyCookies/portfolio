@@ -1,5 +1,5 @@
-import About from "./About";
-import TechStack from "./TechStack";
+import About from "@/components/sections/About";
+import TechStack from "@/components/sections/TechStack";
 
 export default function AboutTechColumn() {
   return (
