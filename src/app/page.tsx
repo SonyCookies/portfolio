@@ -6,6 +6,7 @@ import BeyondCoding from "@/components/sections/BeyondCoding";
 import Certifications from "@/components/sections/Certifications";
 import Testimonials from "@/components/sections/Testimonials";
 import Network from "@/components/sections/Network";
+import Footer from "@/components/sections/Footer";
 import RightColumn from "@/components/containers/RightColumn";
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
         <Certifications />
         <Testimonials />
         <Network />
+        <Footer />
       </div>
     </div>
   );

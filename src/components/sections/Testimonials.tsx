@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 const testimonials = [
   {
     quote:
-      "Mark’s technical expertise is top‑notch, but what really sets him apart is his ability to understand business needs and translate them into scalable solutions.",
+      "Sonny’s technical expertise is top‑notch, but what really sets him apart is his ability to understand business needs and translate them into scalable solutions.",
     author: "— at",
   },
   {

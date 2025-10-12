@@ -24,10 +24,7 @@ export default function Network() {
             <span>A member of</span>
           </div>
           <ul className="space-y-3">
-            {[
-              "Analytics & Artificial Intelligence Association of the Philippines (AAP)",
-              "Philippine Software Industry Association",
-            ].map((t) => (
+            {["Dedicated IT Developers (DID)"].map((t) => (
               <li key={t} className="rounded-xl p-3" style={{
                 border: "1px solid rgba(255,255,255,0.14)",
                 background: "linear-gradient(180deg, color-mix(in oklab, #10234a 60%, #0b1736 40%), color-mix(in oklab, #0f214a 75%, #0a1634 25%))",
@@ -109,7 +106,7 @@ export default function Network() {
         {/* Contact tiles */}
         <div className="lg:col-span-3 grid gap-3">
           {[
-            { title: "Email", desc: "bryll@email.com" },
+            { title: "Email", desc: "sonnypsarcia@gmail.com" },
             { title: "Let's Talk", desc: "Schedule a Call" },
             { title: "Community", desc: "Join Discussion" },
           ].map(({ title, desc }) => (
