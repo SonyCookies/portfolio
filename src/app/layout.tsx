@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import MobileBottomNav from "@/components/MobileBottomNav";
 import FontToggleFab from "@/components/FontToggleFab";
 
 const geistSans = Geist({
@@ -25,7 +24,7 @@ const clash = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "SonyCookies",
+  title: "Sonny Sarcia | Full Stack Developer",
   description: "SonyCookies Portfolio",
   icons: {
     icon: "/battle.png",
@@ -42,8 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${clash.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="pb-24 lg:pb-0">{children}</div>
-        <MobileBottomNav />
+        <div>{children}</div>
         <FontToggleFab />
       </body>
     </html>
