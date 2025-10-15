@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export default function QuickNav() {
@@ -101,7 +100,7 @@ export default function QuickNav() {
   // Compute menu anchor near the menu icon
   useEffect(() => {
     if (!showMenuModal) return;
-    const update = () => {
+    const update = (_e?: Event) => {
       const el = menuBtnRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -112,7 +111,7 @@ export default function QuickNav() {
     window.addEventListener("scroll", update, { passive: true });
     return () => {
       window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update as any);
+      window.removeEventListener("scroll", update);
     };
   }, [showMenuModal]);
 
@@ -131,9 +130,7 @@ export default function QuickNav() {
     try { localStorage.setItem("theme", theme); } catch {}
   }, [theme]);
 
-  const cycleTheme = () => {
-    setTheme((t) => (t === "theme-light" ? "theme-dark" : t === "theme-dark" ? "theme-royale" : "theme-light"));
-  };
+  //
 
   return (
     <div className="flex items-center justify-center gap-4">
@@ -249,7 +246,7 @@ export default function QuickNav() {
                     { label: "Training Camp", tone: "blue" },
                     { label: "Tournaments", tone: "blue" },
                     { label: "Settings", tone: "blue" },
-                  ].map(({ label }, idx) => (
+                  ].map(({ label }) => (
                     <button key={label} type="button" className="w-full text-left rounded-xl px-4 py-3 font-extrabold" style={{
                       background: "linear-gradient(180deg, #8dd0ff 0%, #4aa1ff 100%)",
                       border: "1px solid rgba(0,0,0,0.35)",
@@ -535,7 +532,7 @@ export default function QuickNav() {
                         fontSize: 14,
                         lineHeight: 1.6,
                       }}>
-                        Hi, I'm Sonny Sarcia — a Full Stack Developer focused on building performant, elegant web apps with modern tooling and delightful UI polish.
+                        Hi, I&apos;m Sonny Sarcia — a Full Stack Developer focused on building performant, elegant web apps with modern tooling and delightful UI polish.
                       </div>
                     ) : (
                       <div className="rounded-lg px-4 py-6 text-center font-extrabold" style={{
