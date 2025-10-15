@@ -1,25 +1,24 @@
 import Card from "@/components/ui/Card";
-import Image from "next/image";
+// images removed for recent projects
 
 const projects = [
   {
-    title: "Portfolio Revamp",
-    desc: "Animated, accessible portfolio using Next.js 15 and Tailwind v4.",
-    img: "/window.svg",
-    tags: ["Next.js", "Tailwind", "RSC"],
-    href: "#",
-    repo: "#",
+    title: "AI-Powered Flood Prediction System",
+    desc: "Developed a predictive model for river discharge and climate trends, achieving low error metrics (MAE: 2.64) for local bridge safety.",
+    img: "/FLOOD_PREDICTION.png", // Updated image in public/
+    tags: ["LSTM Neural Networks", "Python", "Time-Series Analysis", "APIs"],
+    href: "https://github.com/SonyCookies/FLOODPREDICTION",
+    repo: "https://github.com/SonyCookies/FLOODPREDICTION",
   },
   {
-    title: "Design System",
-    desc: "Token-driven components with theming and dark mode.",
-    img: "/file.svg",
-    tags: ["Tokens", "Theming", "A11y"],
-    href: "#",
+    title: "MEGG - AI Defect Detection & Sorting",
+    desc: "Engineered a portable system for real-time egg defect classification and automated sorting using Computer Vision and microcontrollers.",
+    img: "/ai-sorting.svg", // Placeholder image path
+    tags: ["Computer Vision", "Raspberry Pi", "Arduino Mega", "Next.js/FastAPI"],
+    href: "https://megg-kiosk.vercel.app/",
     repo: "#",
   },
 ];
-
 function ProjectCard({ p }: { p: typeof projects[number] }) {
   return (
     <a href={p.href} className="group block">
@@ -32,10 +31,7 @@ function ProjectCard({ p }: { p: typeof projects[number] }) {
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 30px -18px rgba(0,0,0,0.6)",
         }}
       >
-        <div className="relative h-36 w-full">
-          <Image src={p.img} alt="Cover" fill className="object-contain p-6" />
-        </div>
-        <div className="p-4">
+        <div className="p-4 pt-5">
           <div className="flex items-center justify-between gap-3">
             <h4 className="font-semibold text-white/95 group-hover:text-white transition-colors">{p.title}</h4>
             <span

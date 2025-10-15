@@ -24,7 +24,7 @@ export default function Network() {
             <span>A member of</span>
           </div>
           <ul className="space-y-3">
-            {["Dedicated IT Developers (DID)"].map((t) => (
+            {["Dedicated IT Developers (DID)", "Integrated Society of Information Technology Enthusiasts - ISITE Inc"].map((t) => (
               <li key={t} className="rounded-xl p-3" style={{
                 border: "1px solid rgba(255,255,255,0.14)",
                 background: "linear-gradient(180deg, color-mix(in oklab, #10234a 60%, #0b1736 40%), color-mix(in oklab, #0f214a 75%, #0a1634 25%))",
@@ -46,17 +46,17 @@ export default function Network() {
           </div>
           <div className="grid gap-3">
             {[
-              { label: "LinkedIn", href: "https://linkedin.com/", icon: (
+              { label: "LinkedIn", href: "https://www.linkedin.com/in/sonny-sarcia-13900138a/", icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M4 3h4v4H4V3Zm0 6h4v12H4V9Zm6 0h4v2.5h.06A4.38 4.38 0 0 1 18 8.88C20.28 8.88 22 10.38 22 13.7V21h-4v-6.04c0-1.44-.52-2.42-1.83-2.42-1 .02-1.62.66-1.89 1.35-.1.24-.12.57-.12.9V21h-4V9Z"/>
                 </svg>
               )},
-              { label: "GitHub", href: "https://github.com/", icon: (
+              { label: "GitHub", href: "https://github.com/SonyCookies", icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M12 .5C5.73.5.98 5.24.98 11.5c0 4.85 3.14 8.96 7.5 10.41.55.1.75-.24.75-.53v-1.86c-3.05.67-3.69-1.29-3.69-1.29-.5-1.27-1.23-1.61-1.23-1.61-1-.69.07-.67.07-.67 1.1.08 1.68 1.13 1.68 1.13.99 1.7 2.6 1.21 3.23.92.1-.73.39-1.21.71-1.49-2.44-.28-5.01-1.22-5.01-5.43 0-1.2.43-2.17 1.13-2.94-.11-.28-.49-1.42.1-2.95 0 0 .92-.29 3.01 1.12a10.3 10.3 0 0 1 5.48 0c2.09-1.41 3.01-1.12 3.01-1.12.59 1.53.21 2.67.1 2.95.7.77 1.13 1.74 1.13 2.94 0 4.22-2.58 5.14-5.04 5.41.4.34.76 1 .76 2.03v3.01c0 .29.2.63.76.53 4.35-1.45 7.49-5.56 7.49-10.41C23.02 5.24 18.27.5 12 .5Z"/>
                 </svg>
               )},
-              { label: "Instagram", href: "https://instagram.com/", icon: (
+              { label: "Instagram", href: "https://www.instagram.com/lt_kowalski/", icon: (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm5 5.2A4.8 4.8 0 1 0 16.8 13 4.81 4.81 0 0 0 12 8.2Zm0 7.6A2.8 2.8 0 1 1 14.8 13 2.8 2.8 0 0 1 12 15.8Zm5.85-9.9a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3Z" fill="currentColor"/>
                 </svg>

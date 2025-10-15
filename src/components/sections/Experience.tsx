@@ -9,21 +9,18 @@ type Item = {
 };
 
 const timeline: Item[] = [
-  { role: "Jr. Software Engineer", org: "eTap Inc.", start: "2025", end: "Present" },
-  { role: "Full-Stack Developer Intern", org: "Infinitech Advertising Corporation", start: "2025" },
-  { role: "Software Developer Freelancer", org: "Private Individuals", start: "2023", end: "Present" },
+  { role: "Software Developer Freelancer", org: "Private Individuals", start: "2024", end: "Present" },
   {
     role: "BS Information Technology",
     org: "Mindoro State University",
-    start: "2021",
-    end: "2025",
+    start: "2022",
+    end: "2026",
     awards: [
-      "Best Capstone Project",
-      "Best On-The-Job Trainee",
-      "Magna Cum Laude (GWA: 1.4070)",
+      "Consistent Dean's Lister",
+      "Running for Magna Cum Laude",
     ],
   },
-  { role: "Wrote my first line of code", org: "Hello World", start: "2020" },
+  { role: "Wrote my first line of code", org: "Hello World", start: "2018" },
 ];
 
 function PeriodPill({ start, end }: { start: string; end?: string }) {

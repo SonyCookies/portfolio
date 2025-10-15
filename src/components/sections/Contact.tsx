@@ -86,7 +86,7 @@ export default function Contact() {
         <div className="text-white/80 text-sm mb-2">Social Links</div>
         <div className="flex items-center gap-3">
           <a
-            href="https://www.linkedin.com/"
+            href="https://www.linkedin.com/in/sonny-sarcia-13900138a/"
             target="_blank"
             aria-label="LinkedIn"
             className="inline-flex items-center justify-center rounded-lg active:translate-y-0.5 transition cr-glass-hover"
@@ -104,7 +104,7 @@ export default function Contact() {
             </svg>
           </a>
           <a
-            href="https://github.com/"
+            href="https://github.com/SonyCookies"
             target="_blank"
             aria-label="GitHub"
             className="inline-flex items-center justify-center rounded-lg active:translate-y-0.5 transition cr-glass-hover"
@@ -122,7 +122,7 @@ export default function Contact() {
             </svg>
           </a>
           <a
-            href="https://facebook.com/"
+            href="https://www.facebook.com/ynnos.aicras/"
             target="_blank"
             aria-label="Facebook"
             className="inline-flex items-center justify-center rounded-lg active:translate-y-0.5 transition cr-glass-hover"
@@ -140,7 +140,7 @@ export default function Contact() {
             </svg>
           </a>
           <a
-            href="https://instagram.com/"
+            href="https://www.instagram.com/lt_kowalski/"
             target="_blank"
             aria-label="Instagram"
             className="inline-flex items-center justify-center rounded-lg active:translate-y-0.5 transition cr-glass-hover"

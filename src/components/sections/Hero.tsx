@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import type React from "react";
 import Card from "@/components/ui/Card";
 
 export default function Hero() {
@@ -15,6 +16,12 @@ export default function Hero() {
   const [celebrate, setCelebrate] = useState(false);
   const phaseTimeoutRef = useRef<number | null>(null);
   const spinStartRef = useRef<number | null>(null);
+
+  const openResume = (e?: React.MouseEvent<HTMLAnchorElement>) => {
+    e?.preventDefault();
+    const newTab = window.open("/resume", "_blank");
+    newTab?.focus();
+  };
   useEffect(() => {
     if (!showReveal) return;
     const onKey = (e: KeyboardEvent) => {
@@ -229,7 +236,8 @@ export default function Hero() {
               {/* mobile: icon-only circular buttons */}
               <div className="flex flex-col items-center gap-2 sm:hidden">
                 <a
-                  href="/resume.pdf"
+                  href="/resume"
+                  onClick={openResume}
                   aria-label="Open resume"
                   title="Resume"
                   className="inline-flex items-center justify-center rounded-full active:translate-y-0.5 transition shadow-md cr-glass-hover"
@@ -245,7 +253,7 @@ export default function Hero() {
                   <Image src="/cr-scroll.svg" alt="Resume" width={18} height={18} />
                 </a>
                 <a
-                  href="mailto:you@example.com"
+                  href="mailto:sonnypsarcia@gmail.com"
                   aria-label="Send email"
                   title="Send Email"
                   className="inline-flex items-center justify-center rounded-full active:translate-y-0.5 transition shadow-md cr-glass-hover"
@@ -263,7 +271,8 @@ export default function Hero() {
               {/* sm+: text buttons */}
               <div className="hidden sm:grid gap-2">
                 <a
-                  href="/resume.pdf"
+                  href="/resume"
+                  onClick={openResume}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-extrabold active:translate-y-0.5 transition text-black cr-glass-hover"
                   style={{
                     border: "1px solid color-mix(in oklab, var(--accent) 55%, #8f6a12 45%)",
@@ -283,7 +292,7 @@ export default function Hero() {
                   <span>Resume</span>
                 </a>
                 <a
-                  href="mailto:you@example.com"
+                  href="mailto:sonnypsarcia@gmail.com"
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
                   style={{
                     border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
@@ -341,12 +350,12 @@ export default function Hero() {
                 // initial transform from avatar position
                 // provided via CSS variables for the FLIP style animation
                 ...(revealVars
-                  ? {
-                      ["--cr-reveal-x" as any]: `${revealVars.x}px`,
-                      ["--cr-reveal-y" as any]: `${revealVars.y}px`,
-                      ["--cr-reveal-scale" as any]: `${revealVars.scale}`,
-                      ["--cr-reveal-rot" as any]: `${revealVars.rot}deg`,
-                    }
+                  ? ({
+                      ["--cr-reveal-x"]: `${revealVars.x}px`,
+                      ["--cr-reveal-y"]: `${revealVars.y}px`,
+                      ["--cr-reveal-scale"]: `${revealVars.scale}`,
+                      ["--cr-reveal-rot"]: `${revealVars.rot}deg`,
+                    } as unknown as React.CSSProperties)
                   : {}),
                 borderColor: "#000",
                 boxShadow:
@@ -423,11 +432,11 @@ export default function Hero() {
                       key={i}
                       className="cr-confetti absolute left-1/2 top-1/2"
                       style={{
-                        ["--tx" as any]: `${(Math.cos((i / 12) * Math.PI * 2) * (60 + (i % 3) * 18)).toFixed(0)}px`,
-                        ["--ty" as any]: `${(Math.sin((i / 12) * Math.PI * 2) * (-70 - (i % 3) * 16)).toFixed(0)}px`,
+                        ["--tx"]: `${(Math.cos((i / 12) * Math.PI * 2) * (60 + (i % 3) * 18)).toFixed(0)}px`,
+                        ["--ty"]: `${(Math.sin((i / 12) * Math.PI * 2) * (-70 - (i % 3) * 16)).toFixed(0)}px`,
                         background: ["#f2c94c", "#ffffff", "#b277ff"][i % 3],
                         animationDelay: `${(i % 4) * 40}ms`,
-                      }}
+                      } as unknown as React.CSSProperties}
                     />
                   ))}
                 </div>
@@ -444,6 +453,7 @@ export default function Hero() {
           </div>
         </div>
       )}
+      
     </Card>
   );
 }

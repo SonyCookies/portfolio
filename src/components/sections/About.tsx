@@ -34,7 +34,8 @@ export default function About() {
         />
 
         <p className="text-white/85 leading-relaxed">
-          Full-Stack Software Engineer with expertise in JavaScript, Python, and PHP, specializing in building end-to-end web applications, automation tools, and system integrations. Known for delivering efficient, scalable solutions by combining strong problem-solving skills with a practical, engineering-driven mindset. Experienced in both frontend and backend development, I design systems that optimize processes, improve performance, and support business growth. Avid Clash Royale fan.
+          Full-Stack Software Engineer with expertise in Next.js, Python, and FastAPI, specializing in building end-to-end web applications, automation tools, and system integrations. Known for delivering efficient, scalable solutions by combining strong problem-solving skills with a practical, engineering-driven mindset. Experienced in both frontend and backend development, I design systems that optimize processes, improve performance, and support business growth. Also I'm a heavy Clash Royale gamer.
+
         </p>
       </div>
 

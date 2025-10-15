@@ -37,8 +37,8 @@ export default function BeyondCoding() {
             "Clash Royale",
             "Chess",
             "Fitness",
-            "Reading",
-            "Photography",
+            "Motorbiking",
+            "Connecting with Nature",
           ].map((t) => (
             <span
               key={t}

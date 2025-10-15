@@ -26,7 +26,9 @@ export default function Testimonials() {
   // auto-advance
   useEffect(() => {
     if (timerRef.current) window.clearInterval(timerRef.current);
-    timerRef.current = window.setInterval(next, 5000);
+    timerRef.current = window.setInterval(() => {
+      setIndex((i) => (i + 1) % count);
+    }, 5000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
       timerRef.current = null;
@@ -40,7 +42,11 @@ export default function Testimonials() {
     }
   };
   const resumeAuto = () => {
-    if (!timerRef.current) timerRef.current = window.setInterval(next, 5000);
+    if (!timerRef.current) {
+      timerRef.current = window.setInterval(() => {
+        setIndex((i) => (i + 1) % count);
+      }, 5000);
+    }
   };
 
   const t = testimonials[index];
