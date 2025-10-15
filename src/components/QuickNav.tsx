@@ -14,6 +14,7 @@ export default function QuickNav() {
   const [menuScale, setMenuScale] = useState(0.96);
   const menuBtnRef = useRef<HTMLButtonElement | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [menuIsMobile, setMenuIsMobile] = useState(false);
   const aboutTimerRef = useRef<number | null>(null);
   const themeTimerRef = useRef<number | null>(null);
   const decksTimerRef = useRef<number | null>(null);
@@ -97,10 +98,12 @@ export default function QuickNav() {
     };
   }, [showMenuModal]);
 
-  // Compute menu anchor near the menu icon
+  // Compute menu anchor near the menu icon (desktop) or center on mobile
   useEffect(() => {
     if (!showMenuModal) return;
     const update = (_e?: Event) => {
+      const isMobile = window.innerWidth < 640; // sm breakpoint
+      setMenuIsMobile(isMobile);
       const el = menuBtnRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -215,56 +218,38 @@ export default function QuickNav() {
           <div className="fixed inset-0 z-[110]" role="dialog" aria-modal="true" aria-label="Menu">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMenuModal(false)} />
             <div className="fixed z-[111] w-[min(92vw,360px)] rounded-[20px] overflow-visible" style={{
-              top: menuAnchor.top,
-              left: menuAnchor.left,
-              transform: `translateX(-100%) scale(${menuScale})`,
-              transformOrigin: "right top",
+              top: menuIsMobile ? '50%' : menuAnchor.top,
+              left: menuIsMobile ? '50%' : menuAnchor.left,
+              transform: menuIsMobile ? `translate(-50%, -50%) scale(${menuScale})` : `translateX(-100%) scale(${menuScale})`,
+              transformOrigin: menuIsMobile ? 'center' : 'right top',
               background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)",
               boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15)",
               border: "1px solid rgba(0,0,0,0.22)",
               transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
             }}>
-              {/* Pointer notch */}
-              <div style={{
-                position: "absolute",
-                right: -10,
-                top: 56,
-                width: 0,
-                height: 0,
-                borderTop: "10px solid transparent",
-                borderBottom: "10px solid transparent",
-                borderLeft: "10px solid #eaf1ff",
-                filter: "drop-shadow(1px 0 rgba(0,0,0,0.25))",
-              }} />
+              {/* Pointer notch (hidden on mobile) */}
+              {!menuIsMobile && (
+                <div style={{
+                  position: "absolute",
+                  right: -10,
+                  top: 56,
+                  width: 0,
+                  height: 0,
+                  borderTop: "10px solid transparent",
+                  borderBottom: "10px solid transparent",
+                  borderLeft: "10px solid #eaf1ff",
+                  filter: "drop-shadow(1px 0 rgba(0,0,0,0.25))",
+                }} />
+              )}
               <div className="p-3">
-                {/* Menu item buttons */}
-                <div className="grid gap-3">
-                  {[
-                    { label: "Battle Log", tone: "blue" },
-                    { label: "Leaderboards", tone: "blue" },
-                    { label: "TV Royale", tone: "blue" },
-                    { label: "Training Camp", tone: "blue" },
-                    { label: "Tournaments", tone: "blue" },
-                    { label: "Settings", tone: "blue" },
-                  ].map(({ label }) => (
-                    <button key={label} type="button" className="w-full text-left rounded-xl px-4 py-3 font-extrabold" style={{
-                      background: "linear-gradient(180deg, #8dd0ff 0%, #4aa1ff 100%)",
-                      border: "1px solid rgba(0,0,0,0.35)",
-                      boxShadow: "inset 0 2px 0 rgba(255,255,255,0.9), 0 6px 12px -6px rgba(0,0,0,0.45)",
-                      color: "#0b2a55",
-                      textShadow: "0 1px 0 rgba(255,255,255,0.5)",
-                    }}>
-                      {label}
-                    </button>
-                  ))}
-                  {/* Yellow button */}
-                  <button type="button" className="w-full text-left rounded-xl px-4 py-3 font-extrabold text-black" style={{
-                    background: "linear-gradient(180deg, #ffd052 0%, #f7b52d 70%, #d98f12 100%)",
-                    border: "1px solid #b17a15",
-                    boxShadow: "inset 0 2px 0 rgba(255,255,255,0.8), 0 6px 12px -6px rgba(0,0,0,0.45)",
-                  }}>
-                    Supercell ID
-                  </button>
+                <div className="rounded-xl text-center font-extrabold" style={{
+                  background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+                  color: "#25355d",
+                  padding: "18px 16px",
+                }}>
+                  🧭 Menu items are being prepared. Coming soon!
                 </div>
               </div>
             </div>
