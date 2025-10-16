@@ -176,57 +176,6 @@ export default function Hero() {
             {!hasRevealed && (
               <div aria-hidden className="pointer-events-none absolute -inset-1 cr-tempt-ping" />
             )}
-      {showTrophyModal && (
-        <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="Trophies">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTrophyModal(false)} />
-          <div
-            className="relative z-[111] w-[min(92vw,360px)] rounded-[20px] overflow-hidden"
-            style={{
-              background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)",
-              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15)",
-              border: "1px solid rgba(0,0,0,0.22)",
-              transform: `scale(${trophyScale})`,
-              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
-            }}
-          >
-            <div className="relative flex items-center px-5 py-4" style={{ background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)" }}>
-              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-[#233457] tracking-wide" style={{ textTransform: "uppercase", letterSpacing: 1 }}>Trophies</div>
-              <button
-                type="button"
-                onClick={() => setShowTrophyModal(false)}
-                aria-label="Close"
-                className="grid place-items-center"
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
-                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
-                  boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
-                  border: "1px solid rgba(0,0,0,0.45)",
-                }}
-              >
-                <span className="sr-only">Close</span>
-                <span className="text-white font-extrabold" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="rounded-xl text-center font-extrabold" style={{
-                background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
-                border: "1px solid rgba(0,0,0,0.12)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
-                color: "#25355d",
-                padding: "18px 16px",
-              }}>
-                🏆 Rewards and awards are being curated. Coming soon!
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
             {hasRevealed ? (
               <Image src="/photo.jpg" alt="Profile photo" fill className="object-cover" />
             ) : (
@@ -519,6 +468,57 @@ export default function Hero() {
                   fill
                   className={`object-cover transition-opacity duration-500 ${revealPhase === "profile" ? "opacity-100" : "opacity-0"}`}
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showTrophyModal && (
+        <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="Trophies">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTrophyModal(false)} />
+          <div
+            className="relative z-[111] w-[min(92vw,360px)] rounded-[20px] overflow-hidden"
+            style={{
+              background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)",
+              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15)",
+              border: "1px solid rgba(0,0,0,0.22)",
+              transform: `scale(${trophyScale})`,
+              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+            }}
+          >
+            <div className="relative flex items-center px-5 py-4" style={{ background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)" }}>
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-[#233457] tracking-wide" style={{ textTransform: "uppercase", letterSpacing: 1 }}>Trophies</div>
+              <button
+                type="button"
+                onClick={() => setShowTrophyModal(false)}
+                aria-label="Close"
+                className="grid place-items-center"
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                  boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(0,0,0,0.45)",
+                }}
+              >
+                <span className="sr-only">Close</span>
+                <span className="text-white font-extrabold" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="rounded-xl text-center font-extrabold" style={{
+                background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
+                border: "1px solid rgba(0,0,0,0.12)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+                color: "#25355d",
+                padding: "18px 16px",
+              }}>
+                🏆 Rewards and awards are being curated. Coming soon!
               </div>
             </div>
           </div>
