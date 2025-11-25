@@ -93,7 +93,7 @@ function CertItem({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onToggleExpand();
+            onToggleExpand?.();
           }}
           className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
           style={{
