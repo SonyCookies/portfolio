@@ -19,6 +19,10 @@ export default function Hero() {
   // Trophy modal state
   const [showTrophyModal, setShowTrophyModal] = useState(false);
   const [trophyScale, setTrophyScale] = useState(0.96);
+  // Photo modal state
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoScale, setPhotoScale] = useState(0.96);
+  const photoTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!showTrophyModal) return;
@@ -32,6 +36,25 @@ export default function Hero() {
     });
     return () => cancelAnimationFrame(raf);
   }, [showTrophyModal]);
+
+  useEffect(() => {
+    if (!showPhotoModal) return;
+    setPhotoScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setPhotoScale(1.06);
+      photoTimerRef.current = window.setTimeout(() => {
+        setPhotoScale(1.0);
+        photoTimerRef.current = null;
+      }, 120);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      if (photoTimerRef.current) {
+        clearTimeout(photoTimerRef.current);
+        photoTimerRef.current = null;
+      }
+    };
+  }, [showPhotoModal]);
 
   const openResume = (e?: React.MouseEvent<HTMLAnchorElement>) => {
     e?.preventDefault();
@@ -177,7 +200,7 @@ export default function Hero() {
               <div aria-hidden className="pointer-events-none absolute -inset-1 cr-tempt-ping" />
             )}
             {hasRevealed ? (
-              <Image src="/photo.jpg" alt="Profile photo" fill className="object-cover" />
+              <Image src="/SONNY_PHOTO.png" alt="Profile photo" fill className="object-cover" />
             ) : (
               <div className="absolute inset-0">
                 {/* purple base */}
@@ -463,7 +486,7 @@ export default function Hero() {
               )}
               <div className="absolute inset-0">
                 <Image
-                  src="/photo.jpg"
+                  src="/SONNY_PHOTO.png"
                   alt="Profile"
                   fill
                   className={`object-cover transition-opacity duration-500 ${revealPhase === "profile" ? "opacity-100" : "opacity-0"}`}
@@ -474,20 +497,25 @@ export default function Hero() {
         </div>
       )}
       {showTrophyModal && (
-        <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="Trophies">
+        <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="Achievements">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTrophyModal(false)} />
           <div
-            className="relative z-[111] w-[min(92vw,360px)] rounded-[20px] overflow-hidden"
+            className="relative z-[111] w-[min(96vw,820px)] rounded-[24px] overflow-hidden"
             style={{
-              background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)",
-              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15)",
-              border: "1px solid rgba(0,0,0,0.22)",
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
               transform: `scale(${trophyScale})`,
               transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
             }}
           >
-            <div className="relative flex items-center px-5 py-4" style={{ background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)" }}>
-              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-[#233457] tracking-wide" style={{ textTransform: "uppercase", letterSpacing: 1 }}>Trophies</div>
+            <div className="relative flex items-center px-6 py-6" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            }}>
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide" style={{
+                textTransform: "uppercase",
+                textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
+                letterSpacing: 1,
+              }}>Achievements & Tournaments</div>
               <button
                 type="button"
                 onClick={() => setShowTrophyModal(false)}
@@ -510,15 +538,135 @@ export default function Hero() {
                 <span className="text-white font-extrabold" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
               </button>
             </div>
-            <div className="p-4">
-              <div className="rounded-xl text-center font-extrabold" style={{
-                background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
+            <div className="px-5 pb-6 pt-4 space-y-4">
+              {/* Hack4Gov Achievement */}
+              <div className="rounded-xl p-4 relative overflow-hidden" style={{
+                background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
                 border: "1px solid rgba(0,0,0,0.12)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
-                color: "#25355d",
-                padding: "18px 16px",
               }}>
-                🏆 Rewards and awards are being curated. Coming soon!
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 w-12 h-12 rounded-lg flex items-center justify-center" style={{
+                    background: "linear-gradient(180deg, #fbbf24 0%, #f59e0b 60%, #d97706 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2)",
+                  }}>
+                    <span className="text-2xl">🏆</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-extrabold text-[#233457]" style={{ textShadow: "0 1px 0 rgba(255,255,255,0.8)" }}>HackforGov</h3>
+                      <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{
+                        background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)",
+                      }}>2024</span>
+                    </div>
+                    <p className="text-sm text-[#233457]/80 mt-1">MIMAROPA HackforGov 2024 Capture-The-Flag Competition</p>
+                    <p className="text-xs text-[#233457]/70 mt-1">September 5, 2024 • Aziza Paradise Hotel, Puerto Princesa City, Palawan</p>
+                    <p className="text-sm text-[#233457]/80 mt-2 font-semibold">Rank 5 Regional Winner – Capture the Flag</p>
+                    <p className="text-sm text-[#233457]/70 mt-1">Competed in the MIMAROPA regional hackathon focused on cybersecurity challenges and Capture-The-Flag competitions with the theme "Today's Generation, Tomorrow's Champion: Shaping the Future of Cybersecurity through Shared Responsibility."</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowPhotoModal(true)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover mt-3"
+                      style={{
+                        border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                        background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                      </svg>
+                      <span>View Certificate</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ISITE Achievement */}
+              <div className="rounded-xl p-4 relative overflow-hidden" style={{
+                background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                border: "1px solid rgba(0,0,0,0.12)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+              }}>
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 w-12 h-12 rounded-lg flex items-center justify-center" style={{
+                    background: "linear-gradient(180deg, #8b5cf6 0%, #7c3aed 60%, #6d28d9 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2)",
+                  }}>
+                    <span className="text-2xl">🎯</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-extrabold text-[#233457]" style={{ textShadow: "0 1px 0 rgba(255,255,255,0.8)" }}>ISITE</h3>
+                      <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{
+                        background: "linear-gradient(180deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)",
+                      }}>2024</span>
+                    </div>
+                    <p className="text-sm text-[#233457]/80 mt-1">IT Competition & Exhibition</p>
+                    <p className="text-xs text-[#233457]/70 mt-1">2024</p>
+                    <p className="text-sm text-[#233457]/80 mt-2 font-semibold">Top 13 National Finalist – C Programming Contest</p>
+                    <p className="text-sm text-[#233457]/70 mt-1">Competed in the national IT showcase event, achieving Top 13 in the C Programming Contest, demonstrating advanced programming skills and problem-solving abilities in competitive programming.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add more achievements here as needed */}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Modal for Certificate */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 z-[120] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Certificate Photo">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowPhotoModal(false)} />
+          <div className="relative z-[121] w-full max-w-[95vw] sm:max-w-[1200px] h-[min(95vh,800px)] max-h-[95vh] rounded-[16px] sm:rounded-[24px] overflow-hidden" style={{
+            background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+            transform: `scale(${photoScale})`,
+            transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+          }}>
+            <div className="relative flex items-center px-3 py-3 sm:px-6 sm:py-6" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            }}>
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-[10px] sm:text-sm px-2 text-center max-w-[calc(100%-80px)] truncate" style={{
+                textTransform: "uppercase",
+                textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
+                letterSpacing: 1,
+              }}>HackforGov 2024 Certificate</div>
+              <button
+                type="button"
+                onClick={() => setShowPhotoModal(false)}
+                aria-label="Close"
+                className="grid place-items-center z-10"
+                style={{
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                  boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(0,0,0,0.45)",
+                }}
+              >
+                <span className="sr-only">Close</span>
+                <span className="text-white font-extrabold text-sm" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+              </button>
+            </div>
+            <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
+              <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                <img
+                  src="/cert1.jpg"
+                  alt="HackforGov 2024 Certificate"
+                  className="w-auto h-auto max-w-full max-h-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ display: 'block' }}
+                />
               </div>
             </div>
           </div>

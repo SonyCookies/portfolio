@@ -6,19 +6,16 @@ export default function QuickNav() {
   const [showAbout, setShowAbout] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showDecksModal, setShowDecksModal] = useState(false);
-  const [showMenuModal, setShowMenuModal] = useState(false);
   const [aboutTab, setAboutTab] = useState<"about" | "links">("about");
   const [aboutScale, setAboutScale] = useState(0.96);
   const [themeScale, setThemeScale] = useState(0.96);
   const [decksScale, setDecksScale] = useState(0.96);
-  const [menuScale, setMenuScale] = useState(0.96);
-  const menuBtnRef = useRef<HTMLButtonElement | null>(null);
-  const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [menuIsMobile, setMenuIsMobile] = useState(false);
+  const [fontIsDefault, setFontIsDefault] = useState(false);
+  const [smoothScroll, setSmoothScroll] = useState(true);
+  const [copiedEmail, setCopiedEmail] = useState(false);
   const aboutTimerRef = useRef<number | null>(null);
   const themeTimerRef = useRef<number | null>(null);
   const decksTimerRef = useRef<number | null>(null);
-  const menuTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (!showAbout) return;
     setAboutScale(0.96);
@@ -78,45 +75,6 @@ export default function QuickNav() {
     };
   }, [showDecksModal]);
 
-  // Menu modal scale animation
-  useEffect(() => {
-    if (!showMenuModal) return;
-    setMenuScale(0.96);
-    const raf = requestAnimationFrame(() => {
-      setMenuScale(1.06);
-      menuTimerRef.current = window.setTimeout(() => {
-        setMenuScale(1.0);
-        menuTimerRef.current = null;
-      }, 120);
-    });
-    return () => {
-      cancelAnimationFrame(raf);
-      if (menuTimerRef.current) {
-        clearTimeout(menuTimerRef.current);
-        menuTimerRef.current = null;
-      }
-    };
-  }, [showMenuModal]);
-
-  // Compute menu anchor near the menu icon (desktop) or center on mobile
-  useEffect(() => {
-    if (!showMenuModal) return;
-    const update = (_e?: Event) => {
-      const isMobile = window.innerWidth < 640; // sm breakpoint
-      setMenuIsMobile(isMobile);
-      const el = menuBtnRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      setMenuAnchor({ top: r.top + window.scrollY, left: r.left + window.scrollX - 12 });
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, { passive: true });
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update);
-    };
-  }, [showMenuModal]);
 
 
   // Apply theme class to <html>
@@ -132,6 +90,114 @@ export default function QuickNav() {
     html.classList.add(theme);
     try { localStorage.setItem("theme", theme); } catch {}
   }, [theme]);
+
+  // Font toggle initialization
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("fontTheme");
+      const shouldDefault = saved === "default";
+      setFontIsDefault(shouldDefault);
+      applyFontClass(shouldDefault);
+    } catch {}
+  }, []);
+
+  // Smooth scroll preference initialization
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("smoothScroll");
+      const shouldSmooth = saved !== "false";
+      setSmoothScroll(shouldSmooth);
+      applySmoothScroll(shouldSmooth);
+    } catch {}
+  }, []);
+
+  const applyFontClass = (useDefault: boolean) => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    if (useDefault) {
+      body.classList.add("font-default");
+    } else {
+      body.classList.remove("font-default");
+    }
+  };
+
+  const applySmoothScroll = (enabled: boolean) => {
+    if (typeof document === "undefined") return;
+    const html = document.documentElement;
+    if (enabled) {
+      html.style.scrollBehavior = "smooth";
+    } else {
+      html.style.scrollBehavior = "auto";
+    }
+  };
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: smoothScroll ? "smooth" : "auto" });
+  };
+
+  const handleDownloadResume = () => {
+    const link = document.createElement("a");
+    link.href = "/files/Sarcia_Resume.pdf";
+    link.download = "Sarcia_Resume.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("sonnypsarcia@gmail.com");
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy email:", err);
+    }
+  };
+
+  const handleSharePortfolio = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Sonny Sarcia - Full Stack Developer",
+          text: "Check out my portfolio!",
+          url: window.location.href,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("Error sharing:", err);
+        }
+      }
+    } else {
+      // Fallback: copy URL to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopiedEmail(true);
+        setTimeout(() => {
+          setCopiedEmail(false);
+        }, 1500);
+      } catch (err) {
+        console.error("Failed to copy URL:", err);
+      }
+    }
+  };
+
+  const handleToggleFont = () => {
+    const next = !fontIsDefault;
+    setFontIsDefault(next);
+    applyFontClass(next);
+    try {
+      localStorage.setItem("fontTheme", next ? "default" : "clash");
+    } catch {}
+  };
+
+  const handleToggleSmoothScroll = () => {
+    const next = !smoothScroll;
+    setSmoothScroll(next);
+    applySmoothScroll(next);
+    try {
+      localStorage.setItem("smoothScroll", next ? "true" : "false");
+    } catch {}
+  };
 
   //
 
@@ -213,48 +279,6 @@ export default function QuickNav() {
           </div>
         )}
 
-        {/* CR-style Menu modal */}
-        {showMenuModal && (
-          <div className="fixed inset-0 z-[110]" role="dialog" aria-modal="true" aria-label="Menu">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMenuModal(false)} />
-            <div className="fixed z-[111] w-[min(92vw,360px)] rounded-[20px] overflow-visible" style={{
-              top: menuIsMobile ? '50%' : menuAnchor.top,
-              left: menuIsMobile ? '50%' : menuAnchor.left,
-              transform: menuIsMobile ? `translate(-50%, -50%) scale(${menuScale})` : `translateX(-100%) scale(${menuScale})`,
-              transformOrigin: menuIsMobile ? 'center' : 'right top',
-              background: "linear-gradient(180deg, #ffffff 0%, #eaf1ff 100%)",
-              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15)",
-              border: "1px solid rgba(0,0,0,0.22)",
-              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
-            }}>
-              {/* Pointer notch (hidden on mobile) */}
-              {!menuIsMobile && (
-                <div style={{
-                  position: "absolute",
-                  right: -10,
-                  top: 56,
-                  width: 0,
-                  height: 0,
-                  borderTop: "10px solid transparent",
-                  borderBottom: "10px solid transparent",
-                  borderLeft: "10px solid #eaf1ff",
-                  filter: "drop-shadow(1px 0 rgba(0,0,0,0.25))",
-                }} />
-              )}
-              <div className="p-3">
-                <div className="rounded-xl text-center font-extrabold" style={{
-                  background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
-                  color: "#25355d",
-                  padding: "18px 16px",
-                }}>
-                  🧭 Menu items are being prepared. Coming soon!
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Decks modal */}
         {showDecksModal && (
@@ -386,12 +410,11 @@ export default function QuickNav() {
             <rect x="10" y="2.5" width="12" height="14" rx="2" fill="#d4e6ff" stroke="#1a3b7a" strokeWidth="1.5" opacity=".6"/>
           </svg>
         </button>
-        {/* Menu icon -> opens CR-style menu */}
+        {/* Share button */}
         <button
           type="button"
-          aria-label="Menu"
-          onClick={() => setShowMenuModal(true)}
-          ref={menuBtnRef}
+          aria-label="Share Portfolio"
+          onClick={handleSharePortfolio}
           className="inline-flex items-center justify-center rounded-2xl active:translate-y-0.5 transition cr-glass-hover"
           style={{
             width: 64,
@@ -403,9 +426,7 @@ export default function QuickNav() {
           }}
         >
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <rect x="5.5" y="7" width="13" height="2.4" rx="1.2" fill="white"/>
-            <rect x="5.5" y="11" width="13" height="2.4" rx="1.2" fill="white" opacity=".9"/>
-            <rect x="5.5" y="15" width="13" height="2.4" rx="1.2" fill="white" opacity=".8"/>
+            <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 8l-6 4M9 12l6 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
         {showAbout && (

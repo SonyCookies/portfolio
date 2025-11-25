@@ -1,5 +1,6 @@
 "use client";
 import Card from "@/components/ui/Card";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const chips = {
@@ -152,12 +153,32 @@ export default function TechStack() {
     {showFull && (
       <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="Full Tech Stack">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowFull(false)} />
-        <div className="relative z-[111] w-[min(96vw,820px)] rounded-[24px] overflow-hidden" style={{
-          background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
-          boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
-          transform: `scale(${scale})`,
-          transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
-        }}>
+        <div className="relative z-[111]">
+          {/* PorcoFG image - bottom-left corner extending outside */}
+          <div 
+            className="absolute -bottom-3 -left-40 z-10 pointer-events-none hidden lg:block" 
+            style={{ 
+              width: 250, 
+              height: 250,
+              transform: `scale(${scale})`,
+              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+            }}
+          >
+            <Image
+              src="/PorcoFG.png"
+              alt="Porco"
+              width={250}
+              height={250}
+              className="w-full h-full object-contain"
+              unoptimized
+            />
+          </div>
+          <div className="w-[min(96vw,820px)] rounded-[30px] overflow-hidden" style={{
+            background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+            transform: `scale(${scale})`,
+            transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+          }}>
           <div className="relative flex items-center px-6 py-6" style={{
             background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
           }}>
@@ -203,14 +224,15 @@ export default function TechStack() {
                 <div className="flex flex-wrap gap-2">
                   {items.map((c) => (
                     <span key={c} className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-extrabold text-black" style={{
-                      border: "1px solid rgba(0,0,0,0.12)",
-                      background: "linear-gradient(180deg, #ffffff 0%, #eef3ff 100%)",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.95)",
+                      border: "1px solid color-mix(in oklab, var(--accent) 55%, #8f6a12 45%)",
+                      background: "linear-gradient(180deg, color-mix(in oklab, var(--accent) 92%, white 6%), color-mix(in oklab, var(--accent) 70%, #b68b1a 30%))",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.35)",
                     }}>{c}</span>
                   ))}
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </div>
