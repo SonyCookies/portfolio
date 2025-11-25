@@ -10,8 +10,6 @@ export default function QuickNav() {
   const [aboutScale, setAboutScale] = useState(0.96);
   const [themeScale, setThemeScale] = useState(0.96);
   const [decksScale, setDecksScale] = useState(0.96);
-  const [fontIsDefault, setFontIsDefault] = useState(false);
-  const [smoothScroll, setSmoothScroll] = useState(true);
   const aboutTimerRef = useRef<number | null>(null);
   const themeTimerRef = useRef<number | null>(null);
   const decksTimerRef = useRef<number | null>(null);
@@ -89,46 +87,6 @@ export default function QuickNav() {
     html.classList.add(theme);
     try { localStorage.setItem("theme", theme); } catch {}
   }, [theme]);
-
-  // Font toggle initialization
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("fontTheme");
-      const shouldDefault = saved === "default";
-      setFontIsDefault(shouldDefault);
-      applyFontClass(shouldDefault);
-    } catch {}
-  }, []);
-
-  // Smooth scroll preference initialization
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("smoothScroll");
-      const shouldSmooth = saved !== "false";
-      setSmoothScroll(shouldSmooth);
-      applySmoothScroll(shouldSmooth);
-    } catch {}
-  }, []);
-
-  const applyFontClass = (useDefault: boolean) => {
-    if (typeof document === "undefined") return;
-    const body = document.body;
-    if (useDefault) {
-      body.classList.add("font-default");
-    } else {
-      body.classList.remove("font-default");
-    }
-  };
-
-  const applySmoothScroll = (enabled: boolean) => {
-    if (typeof document === "undefined") return;
-    const html = document.documentElement;
-    if (enabled) {
-      html.style.scrollBehavior = "smooth";
-    } else {
-      html.style.scrollBehavior = "auto";
-    }
-  };
 
   const handleSharePortfolio = async () => {
     if (navigator.share) {
