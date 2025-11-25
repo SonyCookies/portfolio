@@ -12,7 +12,6 @@ export default function QuickNav() {
   const [decksScale, setDecksScale] = useState(0.96);
   const [fontIsDefault, setFontIsDefault] = useState(false);
   const [smoothScroll, setSmoothScroll] = useState(true);
-  const [copiedEmail, setCopiedEmail] = useState(false);
   const aboutTimerRef = useRef<number | null>(null);
   const themeTimerRef = useRef<number | null>(null);
   const decksTimerRef = useRef<number | null>(null);
@@ -131,29 +130,6 @@ export default function QuickNav() {
     }
   };
 
-  const handleScrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: smoothScroll ? "smooth" : "auto" });
-  };
-
-  const handleDownloadResume = () => {
-    const link = document.createElement("a");
-    link.href = "/files/Sarcia_Resume.pdf";
-    link.download = "Sarcia_Resume.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleCopyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText("sonnypsarcia@gmail.com");
-      setCopiedEmail(true);
-      setTimeout(() => setCopiedEmail(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy email:", err);
-    }
-  };
-
   const handleSharePortfolio = async () => {
     if (navigator.share) {
       try {
@@ -171,32 +147,10 @@ export default function QuickNav() {
       // Fallback: copy URL to clipboard
       try {
         await navigator.clipboard.writeText(window.location.href);
-        setCopiedEmail(true);
-        setTimeout(() => {
-          setCopiedEmail(false);
-        }, 1500);
       } catch (err) {
         console.error("Failed to copy URL:", err);
       }
     }
-  };
-
-  const handleToggleFont = () => {
-    const next = !fontIsDefault;
-    setFontIsDefault(next);
-    applyFontClass(next);
-    try {
-      localStorage.setItem("fontTheme", next ? "default" : "clash");
-    } catch {}
-  };
-
-  const handleToggleSmoothScroll = () => {
-    const next = !smoothScroll;
-    setSmoothScroll(next);
-    applySmoothScroll(next);
-    try {
-      localStorage.setItem("smoothScroll", next ? "true" : "false");
-    } catch {}
   };
 
   //

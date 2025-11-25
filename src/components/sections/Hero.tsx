@@ -563,7 +563,7 @@ export default function Hero() {
                     <p className="text-sm text-[#233457]/80 mt-1">MIMAROPA HackforGov 2024 Capture-The-Flag Competition</p>
                     <p className="text-xs text-[#233457]/70 mt-1">September 5, 2024 • Aziza Paradise Hotel, Puerto Princesa City, Palawan</p>
                     <p className="text-sm text-[#233457]/80 mt-2 font-semibold">Rank 5 Regional Winner – Capture the Flag</p>
-                    <p className="text-sm text-[#233457]/70 mt-1">Competed in the MIMAROPA regional hackathon focused on cybersecurity challenges and Capture-The-Flag competitions with the theme "Today's Generation, Tomorrow's Champion: Shaping the Future of Cybersecurity through Shared Responsibility."</p>
+                    <p className="text-sm text-[#233457]/70 mt-1">Competed in the MIMAROPA regional hackathon focused on cybersecurity challenges and Capture-The-Flag competitions with the theme &quot;Today&apos;s Generation, Tomorrow&apos;s Champion: Shaping the Future of Cybersecurity through Shared Responsibility.&quot;</p>
                     <button
                       type="button"
                       onClick={() => setShowPhotoModal(true)}
@@ -660,6 +660,7 @@ export default function Hero() {
             </div>
             <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
               <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/cert1.jpg"
                   alt="HackforGov 2024 Certificate"

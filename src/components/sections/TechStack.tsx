@@ -174,11 +174,11 @@ export default function TechStack() {
             />
           </div>
           <div className="w-[min(96vw,820px)] rounded-[30px] overflow-hidden" style={{
-            background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
-            boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
-            transform: `scale(${scale})`,
-            transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
-          }}>
+          background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+          boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+          transform: `scale(${scale})`,
+          transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+        }}>
           <div className="relative flex items-center px-6 py-6" style={{
             background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
           }}>

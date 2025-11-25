@@ -115,42 +115,42 @@ export default function Projects() {
 
   return (
     <>
-      <Card
-        title={
-          <>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M4 5h6l2 2h8v12H4V5Z" fill="currentColor"/>
-            </svg>
-            <span>Recent Projects</span>
-          </>
-        }
-        action={
+    <Card
+      title={
+        <>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M4 5h6l2 2h8v12H4V5Z" fill="currentColor"/>
+          </svg>
+          <span>Recent Projects</span>
+        </>
+      }
+      action={
           <button
             type="button"
             onClick={() => setShowFull(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
-            style={{
-              border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
-              background:
-                "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-            }}
+          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
+          style={{
+            border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+            background:
+              "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+          }}
             title="View all"
-          >
-            <span>View all</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+        >
+          <span>View all</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           </button>
-        }
-        className="col-span-full lg:col-span-8 xl:col-span-8"
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
+      }
+      className="col-span-full lg:col-span-8 xl:col-span-8"
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
           {projects.filter((p) => p.isRecent).map((p) => (
-            <ProjectCard key={p.title} p={p} />
-          ))}
-        </div>
-      </Card>
+          <ProjectCard key={p.title} p={p} />
+        ))}
+      </div>
+    </Card>
 
       {/* Full projects modal */}
       {showFull && (
