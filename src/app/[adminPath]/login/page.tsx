@@ -86,6 +86,10 @@ export default function AdminLogin() {
         return;
       }
 
+      if (!auth) {
+        setError("Firebase authentication is not available");
+        return;
+      }
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
@@ -106,8 +110,9 @@ export default function AdminLogin() {
       } else {
         setError(data.error || "Authentication failed");
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred. Please try again.");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An error occurred. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

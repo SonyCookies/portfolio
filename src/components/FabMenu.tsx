@@ -67,7 +67,9 @@ export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) 
     
     if (isAdminPage && pathname) {
       try {
-        await signOut(auth);
+        if (auth) {
+          await signOut(auth);
+        }
         await fetch("/api/admin/logout", { method: "POST" });
         const adminPath = pathname.split("/")[1];
         if (adminPath) {

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ valid: false }, { status: 400 });
   }
 }

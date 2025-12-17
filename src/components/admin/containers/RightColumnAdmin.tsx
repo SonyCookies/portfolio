@@ -1,4 +1,4 @@
-import QuickNavAdmin from "@/components/QuickNavAdmin";
+import QuickNavAdmin from "@/components/admin/QuickNavAdmin";
 import Contact from "@/components/sections/Contact";
 
 export default function RightColumnAdmin() {

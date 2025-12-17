@@ -380,10 +380,12 @@ export default function QuickNav() {
                               >
                                 <div className="relative w-full aspect-video bg-[#233457]/10">
                                   {photo.imageUrl ? (
-                                    <img
+                                    <Image
                                       src={photo.imageUrl}
                                       alt={photo.title || photo.caption || "Photo"}
-                                      className="w-full h-full object-cover"
+                                      fill
+                                      className="object-cover"
+                                      unoptimized
                                     />
                                   ) : (
                                     <div className="flex items-center justify-center h-full text-[#233457]/40">
@@ -639,16 +641,17 @@ export default function QuickNav() {
                 </button>
               </div>
               <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
-                <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                <div className="relative w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
                   {(() => {
                     const achievementWithCert = quickNavData.achievements.find(a => a.hasCertificate && a.certificateImage);
                     return achievementWithCert?.certificateImage ? (
-                      <img
+                      <Image
                         src={achievementWithCert.certificateImage}
                         alt={`${achievementWithCert.title} Certificate`}
-                        className="w-auto h-auto max-w-full max-h-full object-contain"
+                        fill
+                        className="object-contain"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ display: 'block' }}
+                        unoptimized
                       />
                     ) : null;
                   })()}
@@ -701,18 +704,19 @@ export default function QuickNav() {
                 </button>
               </div>
               <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
-                <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                <div className="relative w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
                   {selectedPhoto.imageUrl && (
-                    <img
+                    <Image
                       src={selectedPhoto.imageUrl}
                       alt={selectedPhoto.title || selectedPhoto.caption || "Photo"}
-                      className="w-auto h-auto max-w-full max-h-full object-contain"
+                      fill
+                      className="object-contain"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ display: 'block' }}
+                      unoptimized
                     />
                   )}
-                  </div>
                 </div>
+              </div>
               </div>
             </div>
         )}

@@ -11,11 +11,6 @@ function splitIntoParagraphs(text: string): string[] {
   return text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
 }
 
-// Helper function to join paragraphs back
-function joinParagraphs(paragraphs: string[]): string {
-  return paragraphs.join("\n\n");
-}
-
 // Preview component for photo uploads
 function PhotoPreview({ file }: { file: File }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -45,6 +40,7 @@ function PhotoPreview({ file }: { file: File }) {
 
   return (
     <div className="relative w-full h-48 rounded-md overflow-hidden border border-[#233457]/20 mt-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={previewUrl} 
         alt="Photo preview" 
@@ -87,6 +83,7 @@ function CertificatePreview({ file }: { file: File }) {
 
   return (
     <div className="relative w-full h-48 rounded-md overflow-hidden border border-[#233457]/20 mt-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={previewUrl} 
         alt="Certificate preview" 
@@ -101,14 +98,9 @@ function CertificatePreview({ file }: { file: File }) {
 }
 
 export default function QuickNavAdmin() {
-  const [theme, setTheme] = useState<"theme-light" | "theme-dark" | "theme-royale">("theme-royale");
   const [showAbout, setShowAbout] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
-  const [showDecksModal, setShowDecksModal] = useState(false);
   const [aboutTab, setAboutTab] = useState<"about" | "links">("about");
   const [aboutScale, setAboutScale] = useState(0.96);
-  const [themeScale, setThemeScale] = useState(0.96);
-  const [decksScale, setDecksScale] = useState(0.96);
   const [showTrophyModal, setShowTrophyModal] = useState(false);
   const [trophyScale, setTrophyScale] = useState(0.96);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -117,6 +109,7 @@ export default function QuickNavAdmin() {
   const [photoPreviewScale, setPhotoPreviewScale] = useState(0.96);
   const [selectedPhoto, setSelectedPhoto] = useState<{ id: string; title: string; imageUrl: string; caption: string } | null>(null);
   const [selectedCertificateAchievement, setSelectedCertificateAchievement] = useState<Achievement | null>(null);
+  const photoPreviewTimerRef = useRef<number | null>(null);
   const [expandedAchievement, setExpandedAchievement] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editScale, setEditScale] = useState(0.96);
@@ -127,7 +120,6 @@ export default function QuickNavAdmin() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const aboutTimerRef = useRef<number | null>(null);
   const photoTimerRef = useRef<number | null>(null);
-  const photoPreviewTimerRef = useRef<number | null>(null);
   const editTimerRef = useRef<number | null>(null);
   const deleteTimerRef = useRef<number | null>(null);
 
@@ -203,9 +195,8 @@ export default function QuickNavAdmin() {
     }
 
     // Get fresh ID token to ensure authentication
-    let idToken: string;
     try {
-      idToken = await user.getIdToken(true); // Force refresh
+      await user.getIdToken(true); // Force refresh
     } catch (error) {
       console.error("Failed to get ID token:", error);
       throw new Error("Failed to authenticate user");
@@ -391,6 +382,25 @@ export default function QuickNavAdmin() {
   }, [showPhotoModal]);
 
   useEffect(() => {
+    if (!showPhotoPreviewModal) return;
+    setPhotoPreviewScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setPhotoPreviewScale(1.06);
+      photoPreviewTimerRef.current = window.setTimeout(() => {
+        setPhotoPreviewScale(1.0);
+        photoPreviewTimerRef.current = null;
+      }, 120);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      if (photoPreviewTimerRef.current) {
+        clearTimeout(photoPreviewTimerRef.current);
+        photoPreviewTimerRef.current = null;
+      }
+    };
+  }, [showPhotoPreviewModal]);
+
+  useEffect(() => {
     if (!showEditModal) return;
     setEditScale(0.96);
     const raf = requestAnimationFrame(() => {
@@ -487,9 +497,8 @@ export default function QuickNavAdmin() {
     }
 
     // Get fresh ID token to ensure authentication
-    let idToken: string;
     try {
-      idToken = await user.getIdToken(true); // Force refresh
+      await user.getIdToken(true); // Force refresh
     } catch (error) {
       console.error("Failed to get ID token:", error);
       throw new Error("Failed to authenticate user");
@@ -694,12 +703,6 @@ export default function QuickNavAdmin() {
     });
   };
 
-
-  // Get the certificate image for an achievement
-  const getCertificateImage = (achievementId: string): string | undefined => {
-    const achievement = quickNavData.achievements.find(a => a.id === achievementId);
-    return achievement?.certificateImage;
-  };
 
   // Render autobiography paragraphs
   const autobiographyParagraphs = splitIntoParagraphs(quickNavData.autobiography);
@@ -977,10 +980,12 @@ export default function QuickNavAdmin() {
                             >
                               <div className="relative w-full aspect-video bg-[#233457]/10">
                                 {photo.imageUrl ? (
-                                  <img
+                                  <Image
                                     src={photo.imageUrl}
                                     alt={photo.title || photo.caption || "Photo"}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
                                   />
                                 ) : (
                                   <div className="flex items-center justify-center h-full text-[#233457]/40">
@@ -1190,7 +1195,7 @@ export default function QuickNavAdmin() {
 
       {/* Photo Modal for Certificate */}
       {showPhotoModal && (() => {
-        const achievementWithCert = quickNavData.achievements.find(a => a.hasCertificate && a.certificateImage);
+        const achievementWithCert = selectedCertificateAchievement || quickNavData.achievements.find(a => a.hasCertificate && a.certificateImage);
         if (!achievementWithCert?.certificateImage) return null;
         
         return (
@@ -1239,13 +1244,14 @@ export default function QuickNavAdmin() {
                 </button>
               </div>
               <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
-                <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
-                  <img
+                <div className="relative w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                  <Image
                     src={achievementWithCert.certificateImage}
                     alt={`${achievementWithCert.title} Certificate`}
-                    className="w-auto h-auto max-w-full max-h-full object-contain"
+                    fill
+                    className="object-contain"
                     onClick={(e) => e.stopPropagation()}
-                    style={{ display: 'block' }}
+                    unoptimized
                   />
                 </div>
               </div>
@@ -1455,11 +1461,13 @@ export default function QuickNavAdmin() {
                                   </>
                                 )}
                                 {photo.imageUrl && !selectedPhotoFiles[photo.id] && (
-                                  <div className="mt-2">
-                                    <img
+                                  <div className="mt-2 relative w-full h-64 rounded-md border border-[#233457]/20 overflow-hidden">
+                                    <Image
                                       src={photo.imageUrl}
                                       alt={photo.title || photo.caption || "Photo"}
-                                      className="w-full h-auto max-h-64 object-contain rounded-md border border-[#233457]/20"
+                                      fill
+                                      className="object-contain"
+                                      unoptimized
                                     />
                                     <div className="text-xs text-[#233457]/70 mt-1">
                                       Current: <button
@@ -1526,7 +1534,7 @@ export default function QuickNavAdmin() {
                         ))}
                         {formData.photos.length === 0 && (
                           <div className="text-center py-8 text-[#233457]/60 text-sm">
-                            No photos yet. Click "Add Photo" to add one.
+                            No photos yet. Click &quot;Add Photo&quot; to add one.
                           </div>
                         )}
                       </div>
@@ -1704,7 +1712,7 @@ export default function QuickNavAdmin() {
                         ))}
                         {(!formData.achievements || formData.achievements.length === 0) && (
                           <div className="text-center py-8 text-[#233457]/60 text-sm">
-                            No achievements yet. Click "Add Achievement" to add one.
+                            No achievements yet. Click &quot;Add Achievement&quot; to add one.
                           </div>
                         )}
                       </div>
@@ -1795,14 +1803,15 @@ export default function QuickNavAdmin() {
               </button>
             </div>
             <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
-              <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+              <div className="relative w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
                 {selectedPhoto.imageUrl && (
-                  <img
+                  <Image
                     src={selectedPhoto.imageUrl}
                     alt={selectedPhoto.caption || "Photo"}
-                    className="w-auto h-auto max-w-full max-h-full object-contain"
+                    fill
+                    className="object-contain"
                     onClick={(e) => e.stopPropagation()}
-                    style={{ display: 'block' }}
+                    unoptimized
                   />
                 )}
               </div>

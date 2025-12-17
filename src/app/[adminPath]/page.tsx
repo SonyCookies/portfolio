@@ -1,9 +1,9 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import HeroAdmin from "@/components/sections/HeroAdmin";
+import HeroAdmin from "@/components/admin/sections/HeroAdmin";
 import AboutTechColumn from "@/components/containers/AboutTechColumn";
 import Experience from "@/components/sections/Experience";
 import Projects from "@/components/sections/Projects";
@@ -12,12 +12,11 @@ import Certifications from "@/components/sections/Certifications";
 import Testimonials from "@/components/sections/Testimonials";
 import Network from "@/components/sections/Network";
 import Footer from "@/components/sections/Footer";
-import RightColumnAdmin from "@/components/containers/RightColumnAdmin";
+import RightColumnAdmin from "@/components/admin/containers/RightColumnAdmin";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const params = useParams();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const adminPath = params?.adminPath as string;
@@ -51,6 +50,10 @@ export default function AdminDashboard() {
       });
     
     // Check Firebase auth state
+    if (!auth) {
+      router.push(`/${adminPath}/login`);
+      return;
+    }
     unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!isMounted) return;
       
@@ -60,11 +63,11 @@ export default function AdminDashboard() {
           const response = await fetch("/api/admin/check");
           const data = await response.json();
           
-          if (data.authenticated) {
-            setUserEmail(user.email);
-          } else {
+          if (!data.authenticated) {
             // Not authorized, sign out
-            await signOut(auth);
+            if (auth) {
+              await signOut(auth);
+            }
             router.push(`/${adminPath}/login`);
           }
         } catch (error) {
@@ -85,20 +88,6 @@ export default function AdminDashboard() {
       }
     };
   }, [router, params?.adminPath]);
-
-  const handleLogout = async () => {
-    try {
-      // Sign out from Firebase
-      await signOut(auth);
-      // Clear session cookie
-      await fetch("/api/admin/logout", { method: "POST" });
-      const adminPath = params?.adminPath as string;
-      router.push(`/${adminPath}/login`);
-      router.refresh();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
 
   return (
     <>

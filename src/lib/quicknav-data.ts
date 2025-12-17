@@ -99,10 +99,13 @@ export async function getQuickNavData(): Promise<QuickNavData> {
       const normalizedData: QuickNavData = {
         autobiography: data.autobiography || DEFAULT_QUICKNAV_DATA.autobiography,
         achievements: data.achievements || [],
-        photos: (data.photos || []).map((photo: any) => ({
+        photos: (data.photos || []).map((photo: Partial<Photo> & Record<string, unknown>) => ({
           ...photo,
+          id: photo.id || "",
           title: photo.title || "", // Ensure title field exists for backward compatibility
-        })),
+          imageUrl: photo.imageUrl || "",
+          caption: photo.caption || "",
+        }) as Photo),
         contactEmail: data.contactEmail || DEFAULT_QUICKNAV_DATA.contactEmail,
       };
       console.log("Loaded QuickNav data from Firestore:", normalizedData); // Debug log

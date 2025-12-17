@@ -48,10 +48,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
     return NextResponse.json(
-      { error: error.message || 'Authentication failed' },
+      { error: errorMessage },
       { status: 401 }
     );
   }

@@ -7,7 +7,7 @@ export async function POST() {
     cookieStore.delete('admin_session');
     
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

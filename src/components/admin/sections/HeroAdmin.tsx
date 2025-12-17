@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import type React from "react";
 import Card from "@/components/ui/Card";
 import { storage, auth } from "@/lib/firebase";
@@ -37,6 +37,7 @@ function BannerPreview({ file }: { file: File }) {
 
   return (
     <div className="relative w-full h-32 rounded-md overflow-hidden border border-[#233457]/20">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={previewUrl} 
         alt="Banner preview" 
@@ -78,6 +79,7 @@ function ProfilePreview({ file }: { file: File }) {
 
   return (
     <div className="relative w-32 h-32 rounded-md overflow-hidden border border-[#233457]/20">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={previewUrl} 
         alt="Profile preview" 
@@ -395,7 +397,7 @@ export default function HeroAdmin() {
     // Get fresh ID token to ensure authentication
     try {
       await user.getIdToken(true); // Force refresh
-    } catch (error) {
+    } catch {
       throw new Error("Failed to authenticate user");
     }
 

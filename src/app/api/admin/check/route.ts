@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { adminAuth } from '@/lib/firebase-admin';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     if (!adminAuth) {
       return NextResponse.json({ authenticated: false });
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const isAuthenticated = decodedClaims.email && adminEmails.includes(decodedClaims.email);
 
     return NextResponse.json({ authenticated: isAuthenticated });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ authenticated: false });
   }
 }
