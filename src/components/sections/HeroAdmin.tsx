@@ -119,6 +119,23 @@ export default function HeroAdmin() {
   });
   const [loading, setLoading] = useState(true);
 
+  // Load hero data from Firebase on mount
+  useEffect(() => {
+    const loadHeroData = async () => {
+      try {
+        setLoading(true);
+        const data = await getHeroData();
+        setHeroData(data);
+      } catch (error) {
+        console.error("Error loading hero data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHeroData();
+  }, []);
+
   // Form state for editing
   const [formData, setFormData] = useState<HeroData>(heroData);
 
@@ -141,8 +158,10 @@ export default function HeroAdmin() {
 
   const openResume = (e?: React.MouseEvent<HTMLAnchorElement>) => {
     e?.preventDefault();
-    const newTab = window.open(heroData.resumeUrl, "_blank");
-    newTab?.focus();
+    if (heroData?.resumeUrl) {
+      const newTab = window.open(heroData.resumeUrl, "_blank");
+      newTab?.focus();
+    }
   };
 
   const closeReveal = () => {
@@ -489,6 +508,90 @@ export default function HeroAdmin() {
     setShowReveal(true);
   };
 
+  // Show loading state if data not loaded (AFTER all hooks)
+  if (loading || !heroData) {
+    return (
+      <Card borderless className="col-span-full lg:col-span-7 xl:col-span-8 relative">
+        {/* Edit Button */}
+        <button
+          onClick={() => setShowEditModal(true)}
+          className="absolute top-2 right-2 z-30 p-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-900 shadow-lg transition-colors"
+          title="Edit Hero Section"
+          aria-label="Edit Hero Section"
+          style={{
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        <div
+          className="relative overflow-hidden rounded-tl-xl rounded-tr-none rounded-br-xl rounded-bl-xl"
+          style={{
+            background: "transparent",
+            borderTop: "1px solid rgba(255,255,255,0.16)",
+            borderLeft: "1px solid rgba(255,255,255,0.16)",
+            borderBottom: "1px solid rgba(255,255,255,0.16)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.35), 0 14px 30px -18px rgba(0,0,0,0.6)",
+          }}
+        >
+          {/* Banner Skeleton */}
+          <div className="relative h-48 sm:h-44 bg-gradient-to-r from-[#1e2a4d] via-[#2a3d6b] to-[#1e2a4d] animate-pulse">
+            <div className="absolute -bottom-6 left-2 sm:left-3 md:left-6 size-32 sm:size-36 md:size-40 rounded-2xl bg-gradient-to-br from-[#2a3d6b] to-[#1e2a4d] border-2 border-white/20 animate-pulse" style={{
+              boxShadow: "0 14px 28px -16px rgba(0,0,0,0.65)",
+            }} />
+          </div>
+
+          {/* Content Skeleton */}
+          <div
+            className="relative z-10 px-4 pt-6 pb-3"
+            style={{
+              background:
+                "linear-gradient(180deg, color-mix(in oklab, #0f214a 60%, #0a1634 40%), color-mix(in oklab, #112956 70%, #0b1736 30%))",
+              borderTop: "1px solid rgba(255,255,255,0.18)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                {/* Name Skeleton */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-48 bg-white/10 rounded-md animate-pulse" />
+                  <div className="h-5 w-7 bg-white/10 rounded animate-pulse" />
+                </div>
+                {/* Location Skeleton */}
+                <div className="mt-2 flex items-start gap-2 mb-3">
+                  <div className="h-5 w-5 bg-white/10 rounded-full animate-pulse mt-0.5" />
+                  <div className="h-4 w-40 bg-white/10 rounded animate-pulse" />
+                </div>
+                {/* Job Title Skeleton */}
+                <div className="h-8 w-36 bg-white/10 rounded-md animate-pulse" />
+              </div>
+              {/* Buttons Skeleton */}
+              <div className="ml-3 shrink-0 grid gap-2 text-sm">
+                <div className="hidden sm:grid gap-2">
+                  <div className="h-9 w-28 bg-white/10 rounded-md animate-pulse" />
+                  <div className="h-9 w-32 bg-white/10 rounded-md animate-pulse" />
+                </div>
+                <div className="flex flex-col items-center gap-2 sm:hidden">
+                  <div className="h-10 w-10 bg-white/10 rounded-full animate-pulse" />
+                  <div className="h-10 w-10 bg-white/10 rounded-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // TypeScript now knows heroData is not null after the check above
+  const data = heroData;
+
   return (
     <>
       <Card borderless className="col-span-full lg:col-span-7 xl:col-span-8 relative">
@@ -520,7 +623,7 @@ export default function HeroAdmin() {
           }}
         >
           <div className="relative h-48 sm:h-44">
-            <Image src={heroData.bannerImage} alt="Banner background" fill className="object-cover object-right sm:object-center" priority />
+            <Image src={data.bannerImage} alt="Banner background" fill className="object-cover object-right sm:object-center" priority />
             <button
               ref={avatarRef}
               onClick={openReveal}
@@ -536,7 +639,7 @@ export default function HeroAdmin() {
                 <div aria-hidden className="pointer-events-none absolute -inset-1 cr-tempt-ping" />
               )}
               {hasRevealed ? (
-                <Image src={heroData.profilePhoto} alt="Profile photo" fill className="object-cover" />
+                <Image src={data.profilePhoto} alt="Profile photo" fill className="object-cover" />
               ) : (
                 <div className="absolute inset-0">
                   <div className="absolute inset-0 grid place-items-center" style={{
@@ -574,7 +677,7 @@ export default function HeroAdmin() {
                     className="truncate text-3xl font-extrabold tracking-tight"
                     style={{ textShadow: "0 2px 0 rgba(0,0,0,0.45)" }}
                   >
-                    {heroData.name}
+                    {data.name}
                   </h1>
                   <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1" />
                 </div>
@@ -582,7 +685,7 @@ export default function HeroAdmin() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 12 6 12s6-6.75 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
                   </svg>
-                  <span className="">{heroData.location}</span>
+                  <span className="">{data.location}</span>
                 </div>
                 <div
                   className="inline-flex items-center rounded-md px-3 py-2 text-white/90 text-sm sm:text-base font-semibold mt-2"
@@ -592,13 +695,13 @@ export default function HeroAdmin() {
                       "linear-gradient(180deg, color-mix(in oklab, var(--cr-blue) 20%, transparent), color-mix(in oklab, var(--cr-navy) 65%, #0b1736 35%))",
                   }}
                 >
-                  {heroData.jobTitle}
+                  {data.jobTitle}
                 </div>
               </div>
               <div className="ml-3 shrink-0 grid gap-2 text-sm">
                 <div className="flex flex-col items-center gap-2 sm:hidden">
                 <a
-                  href={heroData.resumeUrl}
+                  href={data.resumeUrl}
                   onClick={openResume}
                   aria-label="Open resume"
                   title="Resume"
@@ -617,7 +720,7 @@ export default function HeroAdmin() {
                     <Image src="/cr-scroll.svg" alt="Resume" width={18} height={18} />
                   </a>
                 <a
-                  href={`mailto:${heroData.email}`}
+                  href={`mailto:${data.email}`}
                   aria-label="Send email"
                   title="Send Email"
                     className="inline-flex items-center justify-center rounded-full active:translate-y-0.5 transition shadow-md cr-glass-hover"
@@ -634,7 +737,7 @@ export default function HeroAdmin() {
                 </div>
                 <div className="hidden sm:grid gap-2">
                 <a
-                  href={heroData.resumeUrl}
+                  href={data.resumeUrl}
                   onClick={openResume}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-extrabold active:translate-y-0.5 transition text-black cr-glass-hover"
                   target="_blank"
@@ -657,7 +760,7 @@ export default function HeroAdmin() {
                     <span>Resume</span>
                   </a>
                 <a
-                  href={`mailto:${heroData.email}`}
+                  href={`mailto:${data.email}`}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
                     style={{
                       border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
@@ -687,7 +790,7 @@ export default function HeroAdmin() {
       {showEditModal && (
         <div className="fixed inset-0 z-[200] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Edit Hero Section">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancel} />
-          <div className="relative z-[201] w-full max-w-[96vw] sm:max-w-[640px] rounded-[16px] sm:rounded-[24px] overflow-hidden max-h-[95vh] overflow-y-auto" style={{
+          <div className="relative z-[201] w-full max-w-[96vw] sm:max-w-[900px] lg:max-w-[1000px] rounded-[16px] sm:rounded-[24px] overflow-hidden max-h-[95vh] overflow-y-auto" style={{
             background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
             boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
             transform: `scale(${editScale})`,
@@ -730,7 +833,99 @@ export default function HeroAdmin() {
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
               }}>
                 <div className="space-y-4">
-                  {/* Name Field */}
+                  {/* Banner Image Upload - Top most, matching Hero layout */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
+                      Banner Background Image
+                    </label>
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect("banner", e.target.files?.[0] || null)}
+                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0] file:cursor-pointer"
+                        disabled={uploading.banner}
+                      />
+                      {selectedFiles.banner && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-[#233457]/70">
+                            Selected: {selectedFiles.banner.name} ({(selectedFiles.banner.size / 1024 / 1024).toFixed(2)} MB)
+                          </div>
+                          <BannerPreview file={selectedFiles.banner} />
+                        </div>
+                      )}
+                      {heroData.bannerImage && !selectedFiles.banner && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-[#233457]/70">Current banner:</div>
+                          <div className="relative w-full h-32 rounded-md overflow-hidden border border-[#233457]/20">
+                            <Image
+                              src={heroData.bannerImage}
+                              alt="Current banner"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {uploading.banner && (
+                        <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">
+                          <div
+                            className="h-full bg-[#5ea0ff] transition-all duration-300"
+                            style={{ width: `${uploadProgress.banner}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload an image file (max 10MB)</p>
+                  </div>
+
+                  {/* Profile Photo Upload - Second, matching Hero layout */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
+                      Profile Photo
+                    </label>
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileSelect("profile", e.target.files?.[0] || null)}
+                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0] file:cursor-pointer"
+                        disabled={uploading.profile}
+                      />
+                      {selectedFiles.profile && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-[#233457]/70">
+                            Selected: {selectedFiles.profile.name} ({(selectedFiles.profile.size / 1024 / 1024).toFixed(2)} MB)
+                          </div>
+                          <ProfilePreview file={selectedFiles.profile} />
+                        </div>
+                      )}
+                      {heroData.profilePhoto && !selectedFiles.profile && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-[#233457]/70">Current profile:</div>
+                          <div className="relative w-32 h-32 rounded-md overflow-hidden border border-[#233457]/20">
+                            <Image
+                              src={heroData.profilePhoto}
+                              alt="Current profile"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {uploading.profile && (
+                        <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">
+                          <div
+                            className="h-full bg-[#5ea0ff] transition-all duration-300"
+                            style={{ width: `${uploadProgress.profile}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload an image file (max 10MB)</p>
+                  </div>
+
+                  {/* Name Field - Third, matching Hero layout */}
                   <div>
                     <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
                       Name
@@ -744,32 +939,35 @@ export default function HeroAdmin() {
                     />
                   </div>
 
-                  {/* Location Field */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                      placeholder="Enter your location"
-                    />
-                  </div>
+                  {/* Location and Job Title Row - Matching Hero layout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Location Field */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
+                        placeholder="Enter your location"
+                      />
+                    </div>
 
-                  {/* Job Title Field */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                      Job Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.jobTitle}
-                      onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
-                      className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                      placeholder="Enter your job title"
-                    />
+                    {/* Job Title Field */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
+                        Job Title
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.jobTitle}
+                        onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
+                        placeholder="Enter your job title"
+                      />
+                    </div>
                   </div>
 
                   {/* Email Field */}
@@ -819,98 +1017,6 @@ export default function HeroAdmin() {
                       )}
                     </div>
                     <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload a PDF file (max 5MB)</p>
-                  </div>
-
-                  {/* Banner Image Upload */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                      Banner Background Image
-                    </label>
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileSelect("banner", e.target.files?.[0] || null)}
-                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0] file:cursor-pointer"
-                        disabled={uploading.banner}
-                      />
-                      {selectedFiles.banner && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-[#233457]/70">
-                            Selected: {selectedFiles.banner.name} ({(selectedFiles.banner.size / 1024 / 1024).toFixed(2)} MB)
-                          </div>
-                          <BannerPreview file={selectedFiles.banner} />
-                        </div>
-                      )}
-                      {heroData.bannerImage && !selectedFiles.banner && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-[#233457]/70">Current banner:</div>
-                          <div className="relative w-full h-32 rounded-md overflow-hidden border border-[#233457]/20">
-                            <Image
-                              src={heroData.bannerImage}
-                              alt="Current banner"
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        </div>
-                      )}
-                      {uploading.banner && (
-                        <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">
-                          <div
-                            className="h-full bg-[#5ea0ff] transition-all duration-300"
-                            style={{ width: `${uploadProgress.banner}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload an image file (max 10MB)</p>
-                  </div>
-
-                  {/* Profile Photo Upload */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                      Profile Photo
-                    </label>
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileSelect("profile", e.target.files?.[0] || null)}
-                        className="w-full px-3 py-2 rounded-md text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0] file:cursor-pointer"
-                        disabled={uploading.profile}
-                      />
-                      {selectedFiles.profile && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-[#233457]/70">
-                            Selected: {selectedFiles.profile.name} ({(selectedFiles.profile.size / 1024 / 1024).toFixed(2)} MB)
-                          </div>
-                          <ProfilePreview file={selectedFiles.profile} />
-                        </div>
-                      )}
-                      {heroData.profilePhoto && !selectedFiles.profile && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-[#233457]/70">Current profile:</div>
-                          <div className="relative w-32 h-32 rounded-md overflow-hidden border border-[#233457]/20">
-                            <Image
-                              src={heroData.profilePhoto}
-                              alt="Current profile"
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        </div>
-                      )}
-                      {uploading.profile && (
-                        <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">
-                          <div
-                            className="h-full bg-[#5ea0ff] transition-all duration-300"
-                            style={{ width: `${uploadProgress.profile}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload an image file (max 10MB)</p>
                   </div>
 
                   {/* Action Buttons */}

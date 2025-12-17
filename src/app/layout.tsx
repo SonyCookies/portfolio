@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   title: "Sonny Sarcia | Full Stack Developer",
   description: "SonyCookies Portfolio",
   icons: {
-    icon: "/battle.png",
-    shortcut: "/battle.png",
-    apple: "/battle.png",
+    icon: "/logos/favicon.ico",
+    shortcut: "/logos/favicon.ico",
+    apple: "/logos/favicon.ico",
   },
 };
 
