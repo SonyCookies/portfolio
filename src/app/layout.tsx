@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import FontToggleFab from "@/components/FontToggleFab";
+import FabMenu from "@/components/FabMenu";
+import ToastContainer from "@/components/ui/Toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${clash.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div>{children}</div>
-        <FontToggleFab />
+        <FabMenu />
+        <ToastContainer />
       </body>
     </html>
   );

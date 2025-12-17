@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 export default function QuickNav() {
   const [theme, setTheme] = useState<"theme-light" | "theme-dark" | "theme-royale">("theme-royale");
@@ -10,9 +11,15 @@ export default function QuickNav() {
   const [aboutScale, setAboutScale] = useState(0.96);
   const [themeScale, setThemeScale] = useState(0.96);
   const [decksScale, setDecksScale] = useState(0.96);
+  const [showTrophyModal, setShowTrophyModal] = useState(false);
+  const [trophyScale, setTrophyScale] = useState(0.96);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoScale, setPhotoScale] = useState(0.96);
+  const [expandedAchievement, setExpandedAchievement] = useState<string | null>(null);
   const aboutTimerRef = useRef<number | null>(null);
   const themeTimerRef = useRef<number | null>(null);
   const decksTimerRef = useRef<number | null>(null);
+  const photoTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (!showAbout) return;
     setAboutScale(0.96);
@@ -72,7 +79,39 @@ export default function QuickNav() {
     };
   }, [showDecksModal]);
 
+  // Trophy modal scale animation
+  useEffect(() => {
+    if (!showTrophyModal) return;
+    setTrophyScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setTrophyScale(1.06);
+      const id = window.setTimeout(() => {
+        setTrophyScale(1.0);
+      }, 120);
+      return () => clearTimeout(id);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [showTrophyModal]);
 
+  // Photo modal scale animation
+  useEffect(() => {
+    if (!showPhotoModal) return;
+    setPhotoScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setPhotoScale(1.06);
+      photoTimerRef.current = window.setTimeout(() => {
+        setPhotoScale(1.0);
+        photoTimerRef.current = null;
+      }, 120);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      if (photoTimerRef.current) {
+        clearTimeout(photoTimerRef.current);
+        photoTimerRef.current = null;
+      }
+    };
+  }, [showPhotoModal]);
 
   // Apply theme class to <html>
   useEffect(() => {
@@ -87,29 +126,6 @@ export default function QuickNav() {
     html.classList.add(theme);
     try { localStorage.setItem("theme", theme); } catch {}
   }, [theme]);
-
-  const handleSharePortfolio = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Sonny Sarcia - Full Stack Developer",
-          text: "Check out my portfolio!",
-          url: window.location.href,
-        });
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          console.error("Error sharing:", err);
-        }
-      }
-    } else {
-      // Fallback: copy URL to clipboard
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-      } catch (err) {
-        console.error("Failed to copy URL:", err);
-      }
-    }
-  };
 
   //
 
@@ -322,11 +338,11 @@ export default function QuickNav() {
             <rect x="10" y="2.5" width="12" height="14" rx="2" fill="#d4e6ff" stroke="#1a3b7a" strokeWidth="1.5" opacity=".6"/>
           </svg>
         </button>
-        {/* Share button */}
+        {/* Achievement/Trophy button */}
         <button
           type="button"
-          aria-label="Share Portfolio"
-          onClick={handleSharePortfolio}
+          aria-label="Achievements"
+          onClick={() => setShowTrophyModal(true)}
           className="inline-flex items-center justify-center rounded-2xl active:translate-y-0.5 transition cr-glass-hover"
           style={{
             width: 64,
@@ -337,9 +353,7 @@ export default function QuickNav() {
               "inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.45), 0 10px 18px -12px rgba(0,0,0,0.6)",
           }}
         >
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 8l-6 4M9 12l6 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Image src="/cr-trophy.svg" alt="Trophy" width={36} height={36} />
         </button>
         {showAbout && (
           <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="About">
@@ -444,13 +458,51 @@ export default function QuickNav() {
                   {/* Content card list style */}
                   <div className="grid gap-3">
                     {aboutTab === "about" ? (
-                      <div className="rounded-lg px-2 py-1" style={{
+                      <div className="rounded-lg px-4 py-3" style={{
                         background: "transparent",
                         color: "#25355d",
                         fontSize: 14,
-                        lineHeight: 1.6,
+                        lineHeight: 1.7,
+                        maxHeight: "400px",
+                        overflowY: "auto",
+                        paddingRight: "8px",
                       }}>
-                        Hi, I&apos;m Sonny Sarcia — a Full Stack Developer focused on building performant, elegant web apps with modern tooling and delightful UI polish.
+                        <p style={{ marginBottom: "1em" }}>
+                          My story is fundamentally rooted in Pinamalayan, Oriental Mindoro. I am Sonny Sarcia, and the rhythm of my life was initially the rhythm of the soil, belonging to a family that has tilled the land as farmers for generations. This agrarian heritage instilled a foundational respect for perseverance and the long wait for harvest.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          But my earliest education in life came from a different kind of labor—the dedication of my mother. As she worked to pursue her own studies, she served as a kasambahay (household helper) at the home of a close family friend we call &quot;Tito.&quot; I spent much of my childhood there. Witnessing her tireless work ethic in that environment was not a mark of hardship, but a blueprint for relentless commitment. It taught me that achieving your dreams requires sacrifice, and that hard work is the most reliable path forward. This environment became a second home that instilled in me the value of effort and deep-seated gratitude.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          My academic life began brightly at the Juan Morente Senior Memorial Pilot School. I was part of a uniquely bonded group of fast learners from Grade 1 to Grade 6. We were an inseparable academic unit, where the strength of the group was the strength of the individual. Our shared success created a comfortable reliance, forging deep bonds that persist even today.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          The real challenge, the turning point of my life, arrived with high school. The familiar block section dissolved, and I was suddenly separated from my academic safety net. It was a moment of profound internal discomfort. For the first time, I could not lean on familiar shoulders or copy an answer; I had to sink or swim entirely on my own merit.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          This initial fear quickly gave way to a powerful realization. The separation became an intense eye-opener that revealed my own capability. I affirmed that the fast learner was me, not just the group. This newfound self-reliance fueled a transformation: I became the top-performing student consistently from Grade 7 through Grade 10. The choice to pursue the STEM (Science, Technology, Engineering, and Mathematics) strand in Senior High was a strategic alignment of my innate curiosity with the fields of math and science, laying the groundwork for a technical future.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          My intellectual fascination was vast, spanning the abstract logic of a Mathematician, the structured analysis of a Statistician, and the practical construction of Electrical, Mechanical, and Agricultural Engineering. Yet, despite this broad appeal, circumstances and a pragmatic assessment of opportunity led me to choose Information Technology (IT) at Mindoro State University.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          I saw IT not as a compromise, but as the ultimate versatile tool. It is the language that underlies modern statistics, the framework that controls engineering systems, and the platform that enables scalable solutions.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          My initial entry into the university mirrored my high school transition—I was an outsider, one of only two students from the Second District in my section, forced to thrive alone. But the solitary focus that defined my academic rigor also attracted like minds. I began to form powerful connections with academic-centric classmates, finding friends who could meet me at my level of intensity, share intellectual burdens, and offer emotional support when the weight of expectation grew heavy. My consistent status as a Dean&apos;s Lister, now culminating in the potential distinction of Magna Cum Laude, is not just an academic record; it is the ultimate vindication of the self-reliance I forged in high school.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          The curriculum demanded the endless creation of systems after systems, lines of code, and complex projects. Though initially tiring, this relentless output ignited the true passion within me. I realized that my interest wasn&apos;t in coding for its own sake, but in the power of technology to create immediate, scalable solutions to tangible problems. This burning desire to innovate is now the engine driving my professional life.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          My focus remains absolute. I approach my career with the same seriousness I apply to my studies, driven by the goal to establish a firm, successful foundation in the IT world.
+                        </p>
+                        <p style={{ marginBottom: "1em" }}>
+                          Now, on the verge of graduation, my attention is shifting from the classroom to the marketplace. My final project is not a thesis, but a nascent venture. I have carefully scouted and approached talented peers—individuals with exceptional potential—to join me in building a startup.
+                        </p>
+                        <p>
+                          This entrepreneurial endeavor is the direct result of my entire journey. Every line of code, every disciplined choice, and every hour of study is fueled by a single, unwavering mission: to return something meaningful to my parents whose lives of toil created the platform for my success, and to honor the faith of everyone who has believed in the farm boy from Pinamalayan. My success will be their legacy, realized through the power of technology.
+                        </p>
                       </div>
                     ) : (
                       <div className="rounded-lg px-4 py-6 text-center font-extrabold" style={{
@@ -475,6 +527,266 @@ export default function QuickNav() {
                 </div>
               </div>
             </div>
+        )}
+
+        {/* Trophy/Achievement Modal */}
+        {showTrophyModal && (
+          <div className="fixed inset-0 z-[110] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Achievements">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTrophyModal(false)} />
+            <div className="relative z-[111] w-full max-w-[96vw] sm:max-w-[820px] rounded-[16px] sm:rounded-[24px] overflow-hidden max-h-[95vh] overflow-y-auto" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+              transform: `scale(${trophyScale})`,
+              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+            }}>
+              <div className="relative flex items-center px-3 py-3 sm:px-6 sm:py-6" style={{
+                background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+              }}>
+                <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-[10px] sm:text-sm px-2 text-center max-w-[calc(100%-80px)] truncate" style={{
+                  textTransform: "uppercase",
+                  textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
+                  letterSpacing: 1,
+                }}>Achievements & Tournaments</div>
+                <button
+                  type="button"
+                  onClick={() => setShowTrophyModal(false)}
+                  aria-label="Close"
+                  className="grid place-items-center z-10"
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                    boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                    border: "1px solid rgba(0,0,0,0.45)",
+                  }}
+                >
+                  <span className="sr-only">Close</span>
+                  <span className="text-white font-extrabold text-sm" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+                </button>
+              </div>
+              <div className="px-3 pb-4 pt-3 sm:px-5 sm:pb-6 sm:pt-4">
+                <div className="rounded-lg sm:rounded-xl p-3 sm:p-4 relative overflow-hidden" style={{
+                  background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+                }}>
+                  <div className="space-y-2 sm:space-y-3">
+                    {/* Hack4Gov Achievement */}
+                    <div
+                      className="rounded-lg p-3"
+                      style={{
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="text-sm font-semibold text-[#233457]">HackforGov</div>
+                            <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{
+                              background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)",
+                            }}>2024</span>
+                          </div>
+                          <div className="text-xs text-[#233457]/75 mt-1">MIMAROPA HackforGov 2024 Capture-The-Flag Competition</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowPhotoModal(true)}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                          style={{
+                            border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                            background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                          </svg>
+                          <span className="truncate">View Certificate</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedAchievement(expandedAchievement === "HackforGov" ? null : "HackforGov")}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                          style={{
+                            border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                            background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                          }}
+                        >
+                          <svg 
+                            width="12" 
+                            height="12" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            aria-hidden
+                            className="shrink-0"
+                            style={{
+                              transform: expandedAchievement === "HackforGov" ? "rotate(180deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s ease",
+                            }}
+                          >
+                            <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                          </svg>
+                          <span className="truncate">View Detail</span>
+                        </button>
+                      </div>
+
+                      <div 
+                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                        style={{
+                          maxHeight: expandedAchievement === "HackforGov" ? "500px" : "0",
+                          opacity: expandedAchievement === "HackforGov" ? 1 : 0,
+                        }}
+                      >
+                        <div className="pt-2 border-t border-[#233457]/20">
+                          <p className="text-xs text-[#233457]/80 leading-relaxed mt-2">
+                            <strong>Rank 5 Regional Winner – Capture the Flag</strong><br />
+                            September 5, 2024 • Aziza Paradise Hotel, Puerto Princesa City, Palawan<br /><br />
+                            Competed in the MIMAROPA regional hackathon focused on cybersecurity challenges and Capture-The-Flag competitions with the theme &quot;Today&apos;s Generation, Tomorrow&apos;s Champion: Shaping the Future of Cybersecurity through Shared Responsibility.&quot;
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ISITE Achievement */}
+                    <div
+                      className="rounded-lg p-3"
+                      style={{
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="text-sm font-semibold text-[#233457]">ISITE</div>
+                            <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{
+                              background: "linear-gradient(180deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)",
+                            }}>2024</span>
+                          </div>
+                          <div className="text-xs text-[#233457]/75 mt-1">IT Competition & Exhibition</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedAchievement(expandedAchievement === "ISITE" ? null : "ISITE")}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                          style={{
+                            border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                            background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                          }}
+                        >
+                          <svg 
+                            width="12" 
+                            height="12" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            aria-hidden
+                            className="shrink-0"
+                            style={{
+                              transform: expandedAchievement === "ISITE" ? "rotate(180deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s ease",
+                            }}
+                          >
+                            <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                          </svg>
+                          <span className="truncate">View Detail</span>
+                        </button>
+                      </div>
+
+                      <div 
+                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                        style={{
+                          maxHeight: expandedAchievement === "ISITE" ? "500px" : "0",
+                          opacity: expandedAchievement === "ISITE" ? 1 : 0,
+                        }}
+                      >
+                        <div className="pt-2 border-t border-[#233457]/20">
+                          <p className="text-xs text-[#233457]/80 leading-relaxed mt-2">
+                            <strong>Top 13 National Finalist – C Programming Contest</strong><br />
+                            2024<br /><br />
+                            Competed in the national IT showcase event, achieving Top 13 in the C Programming Contest, demonstrating advanced programming skills and problem-solving abilities in competitive programming.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Photo Modal for Certificate */}
+        {showPhotoModal && (
+          <div className="fixed inset-0 z-[120] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Certificate Photo">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowPhotoModal(false)} />
+            <div className="relative z-[121] w-full max-w-[95vw] sm:max-w-[1200px] h-[min(95vh,800px)] max-h-[95vh] rounded-[16px] sm:rounded-[24px] overflow-hidden" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+              boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+              transform: `scale(${photoScale})`,
+              transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+            }}>
+              <div className="relative flex items-center px-3 py-3 sm:px-6 sm:py-6" style={{
+                background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+              }}>
+                <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-[10px] sm:text-sm px-2 text-center max-w-[calc(100%-80px)] truncate" style={{
+                  textTransform: "uppercase",
+                  textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
+                  letterSpacing: 1,
+                }}>HackforGov 2024 Certificate</div>
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoModal(false)}
+                  aria-label="Close"
+                  className="grid place-items-center z-10"
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                    boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                    border: "1px solid rgba(0,0,0,0.45)",
+                  }}
+                >
+                  <span className="sr-only">Close</span>
+                  <span className="text-white font-extrabold text-sm" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+                </button>
+              </div>
+              <div className="px-2 pb-2 pt-2 sm:px-6 sm:pb-6 sm:pt-4 h-[calc(100%-60px)] sm:h-[calc(100%-80px)] flex items-center justify-center bg-[#1a1a1a] overflow-auto">
+                <div className="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/cert1.jpg"
+                    alt="HackforGov 2024 Certificate"
+                    className="w-auto h-auto max-w-full max-h-full object-contain"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ display: 'block' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
     </div>
   );

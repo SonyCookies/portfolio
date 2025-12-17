@@ -41,7 +41,7 @@ export default function FontToggleFab() {
       onClick={toggle}
       aria-label={isDefault ? "Switch to Clash font" : "Switch to Default font"}
       title={isDefault ? "Use Clash font" : "Use Default font"}
-      className="fixed bottom-6 right-6 z-50 grid place-items-center rounded-full shadow-lg active:translate-y-0.5 transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
+      className="fixed bottom-6 right-20 z-50 grid place-items-center rounded-full shadow-lg active:translate-y-0.5 transition focus:outline-none focus:ring-2 focus:ring-yellow-400"
       style={{
         width: 52,
         height: 52,
