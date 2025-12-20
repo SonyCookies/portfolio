@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const docRef = adminDb.doc(VIEW_COUNT_DOC_PATH);
     const docSnap = await docRef.get();
 
-    if (docSnap.exists()) {
+    if (docSnap.exists) {
       // Document exists, increment
       await docRef.update({
         totalViews: FieldValue.increment(1),
