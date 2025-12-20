@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ADMIN_PATH = process.env.ADMIN_PATH || 'a8f3k2j9x7m1n5p';
 
@@ -11,25 +11,33 @@ export function middleware(request: NextRequest) {
   if (pathSegments.length > 0) {
     const firstSegment = pathSegments[0];
     
-    // Check if this segment matches our admin path
-    const looksLikeAdmin = firstSegment.length > 10 || firstSegment === ADMIN_PATH;
+    // Check if this segment matches our admin path (exact match or long random string)
+    const isAdminPath = firstSegment === ADMIN_PATH || (firstSegment.length > 10 && firstSegment.match(/^[a-z0-9]+$/i));
     
-    if (looksLikeAdmin || pathname.includes('/login')) {
+    if (isAdminPath) {
       // Check for admin session cookie
       const sessionCookie = request.cookies.get('admin_session');
       
-      // Basic check - full verification happens in API route
-      // If no cookie and not on login, redirect to login
-      if (!sessionCookie && !pathname.includes('/login')) {
+      // If accessing login page
+      if (pathname.includes('/login')) {
+        // If has valid session cookie, redirect to dashboard
+        if (sessionCookie) {
+          const dashboardUrl = new URL(`/${firstSegment}`, request.url);
+          return NextResponse.redirect(dashboardUrl);
+        }
+        // If no cookie, allow access to login page
+        return NextResponse.next();
+      }
+      
+      // If not on login page, require authentication
+      if (!sessionCookie) {
+        // No session cookie - redirect to login
         const loginUrl = new URL(`/${firstSegment}/login`, request.url);
         return NextResponse.redirect(loginUrl);
       }
-
-      // If has cookie and on login page, redirect to dashboard
-      if (sessionCookie && pathname.includes('/login')) {
-        const dashboardUrl = new URL(`/${firstSegment}`, request.url);
-        return NextResponse.redirect(dashboardUrl);
-      }
+      
+      // Has session cookie - allow access (full verification happens in API route)
+      return NextResponse.next();
     }
   }
 
@@ -49,3 +57,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|pdf)$).*)',
   ],
 };
+

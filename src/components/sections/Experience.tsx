@@ -1,29 +1,9 @@
 "use client";
 import Card from "@/components/ui/Card";
 import { useEffect, useRef, useState } from "react";
+import { getExperienceData, type ExperienceItem } from "@/lib/experience-data";
 
-type Item = {
-  role: string;
-  org: string;
-  start: string;
-  end?: string;
-  awards?: string[];
-};
-
-const timeline: Item[] = [
-  { role: "Software Developer Freelancer", org: "Private Individuals", start: "2024", end: "Present" },
-  {
-    role: "BS Information Technology",
-    org: "Mindoro State University",
-    start: "2022",
-    end: "2026",
-    awards: [
-      "Consistent Dean's Lister",
-      "Running for Magna Cum Laude",
-    ],
-  },
-  { role: "Wrote my first line of code", org: "Hello World", start: "2018" },
-];
+type Item = ExperienceItem;
 
 function PeriodPill({ start, end }: { start: string; end?: string }) {
   const text = end ? `${start}  —  ${end}` : start;
@@ -42,9 +22,17 @@ function PeriodPill({ start, end }: { start: string; end?: string }) {
   );
 }
 
-function TimelineContent({ isModal = false }: { isModal?: boolean }) {
+function TimelineContent({ isModal = false, timeline }: { isModal?: boolean; timeline: Item[] }) {
+  if (!timeline || timeline.length === 0) {
+    return (
+      <div className={isModal ? "text-[#233457]/60 text-xs sm:text-sm" : "text-white/60 text-xs sm:text-sm"}>
+        No experience items available yet.
+      </div>
+    );
+  }
+
   return (
-    <div className="relative">
+    <div className="relative h-full">
       {/* vertical line */}
       <div className="absolute left-3 top-0 bottom-0" aria-hidden>
         <div className="h-full w-px"
@@ -81,14 +69,14 @@ function TimelineContent({ isModal = false }: { isModal?: boolean }) {
 
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className={isModal ? "font-semibold text-[#233457]" : "font-semibold text-white/95"}>{item.role}</div>
-                <div className={isModal ? "text-sm text-[#233457]/75" : "text-sm text-white/70"}>{item.org}</div>
+                <div className={`${isModal ? "font-semibold text-[#233457]" : "font-semibold text-white/95"} text-sm sm:text-base`}>{item.role}</div>
+                <div className={`${isModal ? "text-[#233457]/75" : "text-white/70"} text-xs sm:text-sm`}>{item.org}</div>
               </div>
               <div className="shrink-0"><PeriodPill start={item.start} end={item.end} /></div>
             </div>
 
             {item.awards && (
-              <ul className={`mt-2 space-y-1 text-[12px] ${isModal ? "text-amber-600" : "text-amber-300/90"}`}>
+              <ul className={`mt-2 space-y-1 text-[11px] sm:text-[12px] ${isModal ? "text-amber-600" : "text-amber-300/90"}`}>
                 {item.awards.map((a) => (
                   <li key={a} className="pl-1" style={{ textShadow: isModal ? "0 1px 0 rgba(255,255,255,0.5)" : "0 1px 0 rgba(0,0,0,0.35)" }}>
                     {a}
@@ -107,6 +95,30 @@ export default function Experience() {
   const [showFull, setShowFull] = useState(false);
   const [scale, setScale] = useState(0.96);
   const timerRef = useRef<number | null>(null);
+  const [timeline, setTimeline] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load experience data from Firebase on mount
+  useEffect(() => {
+    const loadExperienceData = async () => {
+      try {
+        setLoading(true);
+        console.log("[Experience] Loading data from Firebase...");
+        const data = await getExperienceData();
+        console.log("[Experience] Data loaded:", {
+          itemsCount: data.items?.length || 0,
+        });
+        setTimeline(data.items || []);
+      } catch (error) {
+        console.error("[Experience] Error loading experience data:", error);
+      } finally {
+        setLoading(false);
+        console.log("[Experience] Loading complete");
+      }
+    };
+
+    loadExperienceData();
+  }, []);
 
   useEffect(() => {
     if (!showFull) return;
@@ -157,9 +169,43 @@ export default function Experience() {
             </svg>
           </button>
         }
-        className="col-span-full lg:col-span-5 xl:col-span-4"
+        className="col-span-full lg:col-span-5 xl:col-span-4 h-full flex flex-col"
       >
-        <TimelineContent />
+        {loading ? (
+          /* Timeline Skeleton */
+          <div className="relative h-full">
+            {/* Vertical line skeleton */}
+            <div className="absolute left-3 top-0 bottom-0" aria-hidden>
+              <div className="h-full w-px bg-white/10 animate-pulse" />
+            </div>
+            <div className="space-y-5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="relative pl-8">
+                  {/* Node skeleton */}
+                  <div
+                    className="absolute left-2 top-1.5 h-3.5 w-3.5 rounded-full bg-white/20 animate-pulse"
+                    style={{
+                      boxShadow: "0 0 0 2px rgba(255,255,255,0.16)",
+                    }}
+                    aria-hidden
+                  />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      {/* Role skeleton */}
+                      <div className="h-4 w-32 bg-white/20 rounded animate-pulse mb-2" />
+                      {/* Organization skeleton */}
+                      <div className="h-3 w-24 bg-white/15 rounded animate-pulse" />
+                    </div>
+                    {/* Date pill skeleton */}
+                    <div className="h-5 w-20 bg-white/20 rounded-full animate-pulse shrink-0" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <TimelineContent timeline={timeline} />
+        )}
       </Card>
 
       {/* Full experience modal */}
@@ -209,7 +255,7 @@ export default function Experience() {
                 border: "1px solid rgba(0,0,0,0.12)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
               }}>
-                <TimelineContent isModal={true} />
+                <TimelineContent isModal={true} timeline={timeline} />
               </div>
             </div>
           </div>

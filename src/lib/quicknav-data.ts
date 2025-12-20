@@ -85,16 +85,28 @@ const QUICKNAV_DOC_PATH = "portfolio/quicknav";
  */
 export async function getQuickNavData(): Promise<QuickNavData> {
   if (!db) {
-    console.warn("Firestore not initialized, returning default data");
+    console.warn("[quicknav-data] Firestore not initialized, returning default data");
+    console.warn("[quicknav-data] Check if Firebase env vars are set:", {
+      hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      isClient: typeof window !== 'undefined',
+    });
     return DEFAULT_QUICKNAV_DATA;
   }
 
   try {
+    console.log("[quicknav-data] Fetching from Firestore path:", QUICKNAV_DOC_PATH);
     const docRef = doc(db, QUICKNAV_DOC_PATH);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data();
+      console.log("[quicknav-data] Document exists, raw data:", {
+        hasAutobiography: !!data.autobiography,
+        autobiographyLength: data.autobiography?.length || 0,
+        photosCount: data.photos?.length || 0,
+        achievementsCount: data.achievements?.length || 0,
+      });
       // Ensure all arrays are defined (for backward compatibility)
       const normalizedData: QuickNavData = {
         autobiography: data.autobiography || DEFAULT_QUICKNAV_DATA.autobiography,
@@ -108,15 +120,21 @@ export async function getQuickNavData(): Promise<QuickNavData> {
         }) as Photo),
         contactEmail: data.contactEmail || DEFAULT_QUICKNAV_DATA.contactEmail,
       };
-      console.log("Loaded QuickNav data from Firestore:", normalizedData); // Debug log
+      console.log("[quicknav-data] Normalized data:", {
+        autobiography: normalizedData.autobiography?.substring(0, 100) + "...",
+        photosCount: normalizedData.photos.length,
+        achievementsCount: normalizedData.achievements.length,
+      });
       return normalizedData;
     } else {
+      console.warn("[quicknav-data] Document does not exist, creating with default data");
       // Document doesn't exist, create it with default data
       await setDoc(docRef, DEFAULT_QUICKNAV_DATA);
       return DEFAULT_QUICKNAV_DATA;
     }
   } catch (error) {
-    console.error("Error fetching QuickNav data:", error);
+    console.error("[quicknav-data] Error fetching QuickNav data:", error);
+    console.error("[quicknav-data] Error details:", error instanceof Error ? error.message : String(error));
     return DEFAULT_QUICKNAV_DATA;
   }
 }

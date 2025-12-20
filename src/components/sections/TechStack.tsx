@@ -2,59 +2,7 @@
 import Card from "@/components/ui/Card";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-
-const chips = {
-  "Full-Stack Frameworks & Runtime": [
-    "Next.js",
-    "Vue.js",
-    "Django",
-    "FastAPI",
-    "Node.js",
-  ],
-  "Languages & Core Tools": [
-    "JavaScript",
-    "TypeScript",
-    "Python",
-    "SQL",
-    "HTML/CSS",
-    "Git",
-  ],
-  "Frontend & UI": [
-    "React",
-    "Vite",
-    "TailwindCSS",
-    "Bootstrap",
-    "React Native",
-    "Flutter",
-  ],
-  "Backend & Data": [
-    "REST APIs",
-    "MySQL",
-    "NoSQL",
-    "MongoDB",
-    "Docker",
-    "Flask",
-  ],
-  "AI & Specialized Systems": [
-    "TensorFlow",
-    "OpenAI GPT",
-    "Computer Vision",
-    "Microcontrollers (Arduino/Raspberry Pi)",
-    "C/C++",
-  ],
-};
-
-// Curated subset to display on the card (important stack)
-const featured: string[] = [
-  "Next.js",
-  "TypeScript",
-  "Python",
-  "React",
-  "TailwindCSS",
-  "FastAPI",
-  "Docker",
-  "MySQL",
-];
+import { getTechStackData, type TechStackData } from "@/lib/techstack-data";
 function Chip({ label }: { label: string }) {
   return (
     <span
@@ -72,9 +20,30 @@ function Chip({ label }: { label: string }) {
 }
 
 export default function TechStack() {
+  const [techStackData, setTechStackData] = useState<TechStackData>({
+    categories: {},
+    featured: [],
+  });
+  const [loading, setLoading] = useState(true);
   const [showFull, setShowFull] = useState(false);
   const [scale, setScale] = useState(0.96);
   const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const loadTechStackData = async () => {
+      try {
+        setLoading(true);
+        const data = await getTechStackData();
+        setTechStackData(data);
+      } catch (error) {
+        console.error("[TechStack] Error loading tech stack data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTechStackData();
+  }, []);
 
   useEffect(() => {
     if (!showFull) return;
@@ -126,6 +95,27 @@ export default function TechStack() {
       }
       className="col-span-full lg:col-span-7 xl:col-span-8 mt-2"
     >
+      {loading ? (
+        <div className="space-y-3">
+          <div
+            className="rounded-xl p-3 relative overflow-hidden animate-pulse"
+            style={{
+              background:
+                "linear-gradient(180deg, color-mix(in oklab, #10234a 60%, #0b1736 40%), color-mix(in oklab, #0f214a 75%, #0a1634 25%))",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
+              minHeight: 80,
+            }}
+          >
+            <div className="h-3 w-20 bg-white/10 rounded mb-2" />
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-6 w-16 bg-white/10 rounded-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="space-y-3">
         <div
           className="rounded-xl p-3 relative overflow-hidden"
@@ -136,9 +126,9 @@ export default function TechStack() {
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
           }}
         >
-          <div className="text-[11px] uppercase tracking-wide text-white/70 mb-2">Featured</div>
+          <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-white/70 mb-2">Featured</div>
           <div className="flex flex-wrap gap-2">
-            {featured.map((c) => (
+              {techStackData.featured.map((c) => (
               <Chip key={c} label={c} />
             ))}
           </div>
@@ -147,6 +137,7 @@ export default function TechStack() {
           }} />
         </div>
       </div>
+      )}
     </Card>
 
     {/* Full tech modal */}
@@ -210,7 +201,10 @@ export default function TechStack() {
             </button>
           </div>
           <div className="px-5 pb-6 pt-4 space-y-3">
-            {Object.entries(chips).map(([group, items]) => (
+            {loading ? (
+              <div className="text-center text-white/60 py-8">Loading...</div>
+            ) : (
+              Object.entries(techStackData.categories).map(([group, items]) => (
               <div key={group}
                 className="rounded-xl p-3 relative overflow-hidden"
                 style={{
@@ -220,7 +214,7 @@ export default function TechStack() {
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
                 }}
               >
-                <div className="text-[11px] uppercase tracking-wide text-[#233457]/85 mb-2">{group}</div>
+                <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-[#233457]/85 mb-2">{group}</div>
                 <div className="flex flex-wrap gap-2">
                   {items.map((c) => (
                     <span key={c} className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-extrabold text-black" style={{
@@ -231,7 +225,8 @@ export default function TechStack() {
                   ))}
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
           </div>
         </div>

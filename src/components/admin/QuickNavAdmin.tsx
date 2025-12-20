@@ -699,7 +699,7 @@ export default function QuickNavAdmin() {
     };
     setFormData({
       ...formData,
-      achievements: [...formData.achievements, newAchievement],
+      achievements: [newAchievement, ...formData.achievements],
     });
   };
 
@@ -710,7 +710,7 @@ export default function QuickNavAdmin() {
   // Show loading state if data not loaded
   if (loading || !quickNavData) {
     return (
-      <div className="grid grid-cols-4 gap-4 items-center justify-center relative">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 items-center justify-center relative">
         {/* Edit Button Skeleton */}
         <div
           className="absolute -top-2 -right-2 z-30 p-2 rounded-lg bg-yellow-400/50 animate-pulse"
@@ -872,7 +872,7 @@ export default function QuickNavAdmin() {
               </button>
             </div>
             {/* Inner content container area (tabs + panel) */}
-            <div className="px-4 pb-6 pt-2 flex-1 flex flex-col min-h-0" style={{
+            <div className="px-2 sm:px-4 pb-4 sm:pb-6 pt-2 flex-1 flex flex-col min-h-0" style={{
               background: "linear-gradient(360deg, #808a99 0%, #6b7586 100%)"
             }}>
               {/* Segmented tabs (rail + raised tabs) */}
@@ -996,12 +996,12 @@ export default function QuickNavAdmin() {
                                 )}
                               </div>
                               {photo.title && (
-                                <div className="px-3 py-2 text-sm font-semibold text-[#233457] border-t border-[#233457]/10">
+                                <div className="px-3 py-2 text-xs sm:text-sm font-semibold text-[#233457] border-t border-[#233457]/10">
                                   {photo.title}
                                 </div>
                               )}
                               {photo.caption && (
-                                <div className="px-3 py-2 text-xs text-[#233457]/80 border-t border-[#233457]/10">
+                                <div className="px-3 py-2 text-[10px] sm:text-xs text-[#233457]/80 border-t border-[#233457]/10">
                                   {photo.caption}
                                 </div>
                               )}
@@ -1112,8 +1112,8 @@ export default function QuickNavAdmin() {
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <div className="text-sm font-semibold text-[#233457]">{achievement.title}</div>
-                            <span className="px-2 py-0.5 rounded text-xs font-bold text-white" style={{
+                            <div className="text-xs sm:text-sm font-semibold text-[#233457]">{achievement.title}</div>
+                            <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-white" style={{
                               background: achievement.id === "HackforGov" 
                                 ? "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)"
                                 : "linear-gradient(180deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)",
@@ -1178,7 +1178,7 @@ export default function QuickNavAdmin() {
                         }}
                       >
                         <div className="pt-2 border-t border-[#233457]/20">
-                          <p className="text-xs text-[#233457]/80 leading-relaxed mt-2" style={{ whiteSpace: "pre-line" }}>
+                          <p className="text-[10px] sm:text-xs text-[#233457]/80 leading-relaxed mt-2" style={{ whiteSpace: "pre-line" }}>
                             {achievement.detail}
                           </p>
                         </div>
@@ -1435,7 +1435,7 @@ export default function QuickNavAdmin() {
                               aria-label="Delete Photo"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
                             </button>
 
@@ -1583,7 +1583,7 @@ export default function QuickNavAdmin() {
                             aria-label="Delete Achievement"
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </button>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -1886,7 +1886,7 @@ export default function QuickNavAdmin() {
                     setDeleteType(null);
                     setDeleteId(null);
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
                   style={{
                     border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
                     background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
@@ -1898,7 +1898,7 @@ export default function QuickNavAdmin() {
                 <button
                   type="button"
                   onClick={confirmDelete}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
                   style={{
                     border: "1px solid color-mix(in oklab, #ff6b6b 35%, white 10%)",
                     background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 60%, #b73838 100%)",

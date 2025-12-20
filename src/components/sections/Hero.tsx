@@ -291,7 +291,7 @@ export default function Hero() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                   <h1
-                    className="truncate text-3xl font-extrabold tracking-tight"
+                    className="truncate text-2xl sm:text-3xl font-extrabold tracking-tight"
                     style={{ textShadow: "0 2px 0 rgba(0,0,0,0.45)" }}
                   >
                     {data.name}

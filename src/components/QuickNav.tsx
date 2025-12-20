@@ -109,7 +109,14 @@ export default function QuickNav() {
     const loadQuickNavData = async () => {
       try {
         setLoading(true);
+        console.log("[QuickNav] Loading data from Firebase...");
         const data = await getQuickNavData();
+        console.log("[QuickNav] Data loaded:", {
+          hasAutobiography: !!data.autobiography,
+          autobiographyLength: data.autobiography?.length || 0,
+          photosCount: data.photos?.length || 0,
+          achievementsCount: data.achievements?.length || 0,
+        });
         // Ensure all arrays are defined (in case of old data structure)
         const normalizedData: QuickNavData = {
           ...data,
@@ -120,10 +127,23 @@ export default function QuickNav() {
           })),
         };
         setQuickNavData(normalizedData);
+        console.log("[QuickNav] Data normalized and set:", {
+          autobiography: normalizedData.autobiography?.substring(0, 50) + "...",
+          photosCount: normalizedData.photos.length,
+          achievementsCount: normalizedData.achievements.length,
+        });
       } catch (error) {
-        console.error("Error loading QuickNav data:", error);
+        console.error("[QuickNav] Error loading QuickNav data:", error);
+        // Set error state or show fallback
+        setQuickNavData({
+          autobiography: "",
+          achievements: [],
+          photos: [],
+          contactEmail: "sonnypsarcia@gmail.com",
+        });
       } finally {
         setLoading(false);
+        console.log("[QuickNav] Loading complete");
       }
     };
 
@@ -339,6 +359,10 @@ export default function QuickNav() {
                       }}>
                         {loading ? (
                           <div className="text-center text-[#233457]/60">Loading...</div>
+                        ) : autobiographyParagraphs.length === 0 ? (
+                          <div className="text-center text-[#233457]/60 py-8">
+                            No autobiography available yet.
+                          </div>
                         ) : (
                           autobiographyParagraphs.map((paragraph, index) => (
                             <p key={index} style={{ marginBottom: "1em" }}>
@@ -715,8 +739,8 @@ export default function QuickNav() {
                       unoptimized
                     />
                   )}
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
         )}

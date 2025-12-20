@@ -1,41 +1,14 @@
 "use client";
 import Card from "@/components/ui/Card";
 import { useEffect, useRef, useState } from "react";
-// images removed for recent projects
+import { getProjectsData, type ProjectsData, type Project, isProjectRecent } from "@/lib/projects-data";
 
-const projects = [
-  {
-    title: "AI-Powered Flood Prediction System",
-    desc: "Developed a predictive model for river discharge and climate trends, achieving low error metrics (MAE: 2.64) for local bridge safety.",
-    img: "/FLOOD_PREDICTION.png", // Updated image in public/
-    tags: ["LSTM Neural Networks", "Python", "Time-Series Analysis", "APIs"],
-    href: "https://github.com/SonyCookies/FLOODPREDICTION",
-    repo: "https://github.com/SonyCookies/FLOODPREDICTION",
-    isRecent: true,
-  },
-  {
-    title: "MEGG - AI Defect Detection & Sorting",
-    desc: "Engineered a portable system for real-time egg defect classification and automated sorting using Computer Vision and microcontrollers.",
-    img: "/ai-sorting.svg", // Placeholder image path
-    tags: ["Computer Vision", "Raspberry Pi", "Arduino Mega", "Next.js/FastAPI"],
-    href: "https://megg-kiosk.vercel.app/",
-    repo: "#",
-    isRecent: true,
-  },
-  {
-    title: "EZVENDO - RFID-Based Wi-Fi Vending System",
-    desc: "Next-generation public Wi-Fi vending system replacing coin-operated models with an RFID digital credit system. Features ESP32-based authentication, Orange Pi Zero 3 network gateway, Next.js captive portal, Python Flask API, and Google Firestore integration for secure, cashless transactions.",
-    img: "/ezvendo.svg", // Placeholder image path
-    tags: ["ESP32", "RFID", "Orange Pi Zero 3", "Next.js", "Python Flask", "Google Firestore", "Iptables", "IoT"],
-    href: "#",
-    repo: "#",
-    isRecent: false,
-  },
-];
+function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) {
+  const hasProjectUrl = p.href && p.href !== "#";
+  const hasRepoUrl = p.repo && p.repo !== "#";
 
-function ProjectCard({ p, isModal = false }: { p: typeof projects[number]; isModal?: boolean }) {
   return (
-    <a href={p.href} className="group block">
+    <div className="group block">
       <div
         className="overflow-hidden rounded-xl cr-glass-hover"
         style={{
@@ -50,23 +23,55 @@ function ProjectCard({ p, isModal = false }: { p: typeof projects[number]; isMod
       >
         <div className="p-4 pt-5">
           <div className="flex items-center justify-between gap-3">
-            <h4 className={`font-semibold transition-colors ${isModal ? "text-[#233457] group-hover:text-[#1a2540]" : "text-white/95 group-hover:text-white"}`}>{p.title}</h4>
-            <span
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold text-white cr-glass-hover"
+            <h4 className={`text-sm sm:text-base font-semibold transition-colors ${isModal ? "text-[#233457] group-hover:text-[#1a2540]" : "text-white/95 group-hover:text-white"}`}>{p.title}</h4>
+            <div className="flex items-center gap-2">
+              {/* Repository Icon */}
+              {hasRepoUrl && (
+                <a
+                  href={p.repo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-md text-white cr-glass-hover transition-transform hover:scale-110"
+                  style={{
+                    border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                    background:
+                      "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                  }}
+                  title="View Repository"
+                  aria-label="View Repository"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              )}
+              {/* Project Icon */}
+              {hasProjectUrl && (
+                <a
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-md text-white cr-glass-hover transition-transform hover:scale-110"
               style={{
                 border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
                 background:
                   "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
               }}
+                  title="View Project"
+                  aria-label="View Project"
             >
-              <span>View</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            </span>
+                </a>
+              )}
+            </div>
           </div>
-          <p className={`mt-1 text-sm ${isModal ? "text-[#233457]/80" : "text-white/80"}`}>{p.desc}</p>
+          <p className={`mt-1 text-xs sm:text-sm ${isModal ? "text-[#233457]/80" : "text-white/80"}`}>{p.desc}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {p.tags.map((t) => (
               <span
@@ -85,14 +90,34 @@ function ProjectCard({ p, isModal = false }: { p: typeof projects[number]; isMod
           </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
 export default function Projects() {
+  const [projectsData, setProjectsData] = useState<ProjectsData>({
+    projects: [],
+  });
+  const [loading, setLoading] = useState(true);
   const [showFull, setShowFull] = useState(false);
   const [scale, setScale] = useState(0.96);
   const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const loadProjectsData = async () => {
+      try {
+        setLoading(true);
+        const data = await getProjectsData();
+        setProjectsData(data);
+      } catch (error) {
+        console.error("[Projects] Error loading projects data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProjectsData();
+  }, []);
 
   useEffect(() => {
     if (!showFull) return;
@@ -145,11 +170,31 @@ export default function Projects() {
       }
       className="col-span-full lg:col-span-8 xl:col-span-8"
     >
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-xl p-4 pt-5 animate-pulse" style={{
+              background: "linear-gradient(180deg, color-mix(in oklab, #10234a 60%, #0b1736 40%), color-mix(in oklab, #0f214a 75%, #0a1634 25%))",
+              border: "1px solid rgba(255,255,255,0.14)",
+              minHeight: 150,
+            }}>
+              <div className="h-5 w-3/4 bg-white/10 rounded mb-2" />
+              <div className="h-4 w-full bg-white/10 rounded mb-2" />
+              <div className="h-4 w-5/6 bg-white/10 rounded mb-3" />
+              <div className="flex gap-2">
+                <div className="h-6 w-20 bg-white/10 rounded-full" />
+                <div className="h-6 w-16 bg-white/10 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
       <div className="grid gap-4 sm:grid-cols-2">
-          {projects.filter((p) => p.isRecent).map((p) => (
-          <ProjectCard key={p.title} p={p} />
+          {projectsData.projects.filter((_, index) => isProjectRecent(index)).map((p) => (
+            <ProjectCard key={p.id} p={p} />
         ))}
       </div>
+      )}
     </Card>
 
       {/* Full projects modal */}
@@ -193,11 +238,15 @@ export default function Projects() {
               </button>
             </div>
             <div className="px-5 pb-6 pt-4">
+              {loading ? (
+                <div className="text-center text-white/60 py-8">Loading...</div>
+              ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {projects.map((p) => (
-                  <ProjectCard key={p.title} p={p} isModal={true} />
+                  {projectsData.projects.map((p) => (
+                    <ProjectCard key={p.id} p={p} isModal={true} />
                 ))}
               </div>
+              )}
             </div>
           </div>
         </div>

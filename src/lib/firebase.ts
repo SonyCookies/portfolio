@@ -25,18 +25,30 @@ if (typeof window !== 'undefined') {
       // Check if config is complete
       if (firebaseConfig.apiKey && firebaseConfig.projectId) {
         app = initializeApp(firebaseConfig);
+        console.log('[Firebase] Initialized successfully');
+      } else {
+        console.warn('[Firebase] Missing required config:', {
+          hasApiKey: !!firebaseConfig.apiKey,
+          hasProjectId: !!firebaseConfig.projectId,
+          hasAuthDomain: !!firebaseConfig.authDomain,
+        });
       }
     } else {
       app = getApps()[0];
+      console.log('[Firebase] Using existing app instance');
     }
     if (app) {
       auth = getAuth(app);
       storage = getStorage(app);
       db = getFirestore(app);
+      console.log('[Firebase] Services initialized:', { hasAuth: !!auth, hasStorage: !!storage, hasDb: !!db });
     }
   } catch (error) {
-    console.error('Firebase initialization error:', error);
+    console.error('[Firebase] Initialization error:', error);
+    console.error('[Firebase] Error details:', error instanceof Error ? error.message : String(error));
   }
+} else {
+  console.log('[Firebase] Server-side: Firebase not initialized (client-side only)');
 }
 
 export { app, auth, storage, db };

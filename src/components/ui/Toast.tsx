@@ -32,8 +32,22 @@ export function showToast(message: string, type: Toast["type"] = "info", progres
 }
 
 export function updateToast(id: string, updates: Partial<Toast>) {
-  toasts = toasts.map((t) => (t.id === id ? { ...t, ...updates } : t));
+  const toast = toasts.find((t) => t.id === id);
+  if (!toast) return;
+  
+  const wasLoading = toast.type === "loading";
+  const updatedToast = { ...toast, ...updates };
+  const isNowNonLoading = updatedToast.type !== "loading" && wasLoading;
+  
+  toasts = toasts.map((t) => (t.id === id ? updatedToast : t));
   notify();
+  
+  // If toast was updated from "loading" to a non-loading type, auto-dismiss after 3 seconds
+  if (isNowNonLoading) {
+    setTimeout(() => {
+      removeToast(id);
+    }, 3000);
+  }
 }
 
 export function removeToast(id: string) {

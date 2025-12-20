@@ -1,30 +1,37 @@
 "use client";
 import Card from "@/components/ui/Card";
 import { useEffect, useState, useRef } from "react";
-
-const testimonials = [
-  {
-    quote:
-      "Sonny’s technical expertise is top‑notch, but what really sets him apart is his ability to understand business needs and translate them into scalable solutions.",
-    author: "— at",
-  },
-  {
-    quote:
-      "Thinks in systems, ships reliably, and elevates team velocity with practical patterns and tooling.",
-    author: "— at",
-  },
-];
+import { getTestimonialsData, type TestimonialsData } from "@/lib/testimonials-data";
 
 export default function Testimonials() {
+  const [testimonialsData, setTestimonialsData] = useState<TestimonialsData>({ testimonials: [] });
+  const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
-  const count = testimonials.length;
+  const count = testimonialsData.testimonials.length;
+
+  // Load testimonials data from Firestore
+  useEffect(() => {
+    const loadTestimonialsData = async () => {
+      try {
+        setLoading(true);
+        const data = await getTestimonialsData();
+        setTestimonialsData(data);
+      } catch (error) {
+        console.error("Error loading testimonials:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTestimonialsData();
+  }, []);
 
   const next = () => setIndex((i) => (i + 1) % count);
   const prev = () => setIndex((i) => (i - 1 + count) % count);
 
   // auto-advance
   useEffect(() => {
+    if (count === 0) return;
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = window.setInterval(() => {
       setIndex((i) => (i + 1) % count);
@@ -42,14 +49,37 @@ export default function Testimonials() {
     }
   };
   const resumeAuto = () => {
-    if (!timerRef.current) {
+    if (!timerRef.current && count > 0) {
       timerRef.current = window.setInterval(() => {
         setIndex((i) => (i + 1) % count);
       }, 5000);
     }
   };
 
-  const t = testimonials[index];
+  if (loading || count === 0) {
+    return (
+      <Card
+        title={
+          <>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M6 6h12v12H6z" stroke="currentColor" strokeWidth="2"/>
+              <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span>Testimonials</span>
+          </>
+        }
+        className="col-span-full lg:col-span-6"
+      >
+        <div className="min-h-[96px] animate-pulse">
+          <div className="h-4 w-full bg-white/10 rounded mb-2" />
+          <div className="h-4 w-3/4 bg-white/10 rounded mb-4" />
+          <div className="h-3 w-1/3 bg-white/10 rounded" />
+        </div>
+      </Card>
+    );
+  }
+
+  const t = testimonialsData.testimonials[index];
 
   return (
     <Card
@@ -66,12 +96,12 @@ export default function Testimonials() {
     >
       <div className="relative" onMouseEnter={pauseAuto} onMouseLeave={resumeAuto}>
         <div className="min-h-[96px]">
-          <blockquote key={index} className="text-white/85 leading-relaxed transition-opacity duration-300">“{t.quote}”</blockquote>
-          <div className="mt-4 text-sm text-white/60">{t.author}</div>
+          <blockquote key={index} className="text-white/85 text-sm sm:text-base leading-relaxed transition-opacity duration-300">"{t.quote}"</blockquote>
+          <div className="mt-4 text-xs sm:text-sm text-white/60">{t.author}</div>
         </div>
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {testimonials.map((_, i) => (
+            {testimonialsData.testimonials.map((_, i) => (
               <button
                 key={i}
                 aria-label={`Go to testimonial ${i + 1}`}

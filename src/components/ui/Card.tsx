@@ -9,12 +9,15 @@ type Props = {
 };
 
 export default function Card({ title, action, children, className, borderless }: Props) {
+  const hasHeightClass = className?.includes("h-full") || className?.includes("min-h-full");
+  
   return (
     <div
       className={[
         "rounded-2xl",
         borderless ? "p-0" : "backdrop-blur-sm p-5",
         borderless ? "shadow-none" : "shadow-[0_10px_30px_-16px_rgb(0_0_0_/_0.6)] hover:shadow-[0_16px_36px_-16px_rgb(0_0_0_/_0.65)] transition-shadow",
+        hasHeightClass ? "flex flex-col" : "",
         className || "",
       ].join(" ")}
       style={{
@@ -28,7 +31,8 @@ export default function Card({ title, action, children, className, borderless }:
       }}
     >
       {(title || action) && (
-        <div className="flex items-center justify-between mb-3 pb-2"
+        <div 
+          className={`flex items-center justify-between ${hasHeightClass ? "mb-3 pb-2 flex-shrink-0" : "mb-3 pb-2"}`}
           style={{
             borderBottom: "1px solid color-mix(in oklab, var(--accent) 18%, white 6%)",
           }}
@@ -41,7 +45,9 @@ export default function Card({ title, action, children, className, borderless }:
           {action}
         </div>
       )}
+      <div className={hasHeightClass ? "flex-1 min-h-0" : ""}>
       {children}
+      </div>
     </div>
   );
 }
