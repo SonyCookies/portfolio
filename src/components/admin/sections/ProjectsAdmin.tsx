@@ -470,18 +470,18 @@ export default function ProjectsAdmin() {
 
       {/* Full projects modal */}
       {showFull && (
-        <div className="fixed inset-0 z-[110] grid place-items-center" role="dialog" aria-modal="true" aria-label="All Projects">
+        <div className="fixed inset-0 z-[110] grid place-items-center p-1 sm:p-4" role="dialog" aria-modal="true" aria-label="All Projects">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowFull(false)} />
-          <div className="relative z-[111] w-[min(96vw,820px)] rounded-[24px] overflow-hidden" style={{
+          <div className="relative z-[111] w-full max-w-[98vw] sm:max-w-[820px] h-[98vh] sm:h-auto sm:max-h-[95vh] rounded-[12px] sm:rounded-[24px] overflow-hidden flex flex-col" style={{
             background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
             boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
             transform: `scale(${scale})`,
             transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
           }}>
-            <div className="relative flex items-center px-6 py-6" style={{
+            <div className="relative flex items-center px-3 py-2.5 sm:px-6 sm:py-6 flex-shrink-0" style={{
               background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
             }}>
-              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide" style={{
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-[9px] sm:text-sm px-2 text-center max-w-[calc(100%-70px)] truncate" style={{
                 textTransform: "uppercase",
                 textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
                 letterSpacing: 1,
@@ -490,25 +490,25 @@ export default function ProjectsAdmin() {
                 type="button"
                 onClick={() => setShowFull(false)}
                 aria-label="Close"
-                className="grid place-items-center"
+                className="grid place-items-center z-10"
                 style={{
                   position: "absolute",
-                  right: 12,
+                  right: 6,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 6,
                   background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
                   boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
                   border: "1px solid rgba(0,0,0,0.45)",
                 }}
               >
                 <span className="sr-only">Close</span>
-                <span className="text-white font-extrabold" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+                <span className="text-white font-extrabold text-xs" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
               </button>
             </div>
-            <div className="px-5 pb-6 pt-4">
+            <div className="px-2 sm:px-5 pb-4 sm:pb-6 pt-2 sm:pt-4 flex-1 min-h-0 overflow-y-auto">
               <div className="grid gap-4 sm:grid-cols-2">
                 {projectsData.projects.map((p) => (
                   <ProjectCard key={p.id} p={p} isModal={true} />
