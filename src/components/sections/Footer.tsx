@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { getFooterData, type FooterData } from "@/lib/footer-data";
+import { getViewCount } from "@/lib/view-count";
 
 export default function Footer() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function Footer() {
     credits: "Layout inspiration from Bryl Lim. Design heavily influenced by Clash Royale.",
   });
   const [loading, setLoading] = useState(true);
+  const [viewCount, setViewCount] = useState<number | null>(null);
   
   // Admin path - should match the ADMIN_PATH env variable or default
   // Using NEXT_PUBLIC_ prefix so it's available on the client side
@@ -38,6 +40,19 @@ export default function Footer() {
       }
     };
     loadFooterData();
+  }, []);
+
+  // Load view count from Firestore
+  useEffect(() => {
+    const loadViewCount = async () => {
+      try {
+        const count = await getViewCount();
+        setViewCount(count);
+      } catch (error) {
+        console.error("[Footer] Error loading view count:", error);
+      }
+    };
+    loadViewCount();
   }, []);
 
   // Parse tech stack to extract technology names for styling
@@ -93,6 +108,11 @@ export default function Footer() {
         <div className="text-right text-xs sm:text-sm">
           <div className="text-white/85">{parseTechStack(footerData.techStack)}</div>
           <div className="text-white/60 text-[10px] sm:text-xs">{footerData.credits}</div>
+          {viewCount !== null && (
+            <div className="text-white/50 text-[9px] sm:text-[10px] mt-1">
+              {viewCount.toLocaleString()} {viewCount === 1 ? 'visit' : 'visits'}
+            </div>
+          )}
         </div>
       </div>
     </footer>
