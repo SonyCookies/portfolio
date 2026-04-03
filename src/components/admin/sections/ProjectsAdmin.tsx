@@ -1,12 +1,56 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Card from "@/components/ui/Card";
+import { storage, auth } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getProjectsData, saveProjectsData, type ProjectsData, type Project, isProjectRecent } from "@/lib/projects-data";
 import { showToast, updateToast, removeToast } from "@/components/ui/Toast";
 
+// Preview component for project image uploads
+function ProjectPreview({ file }: { file: File }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    // Cleanup function
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
+
+  if (!previewUrl) {
+    return (
+      <div className="relative w-full aspect-video rounded-md overflow-hidden border border-[#233457]/20 bg-[#233457]/10 flex items-center justify-center">
+        <div className="text-xs text-[#233457]/50">Loading preview...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full aspect-video rounded-md overflow-hidden border border-[#233457]/20 mt-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={previewUrl}
+        alt="Project preview"
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          console.error("Error loading preview image");
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    </div>
+  );
+}
+
 function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) {
   const hasProjectUrl = p.href && p.href !== "#";
-  const hasRepoUrl = p.repo && p.repo !== "#";
 
   return (
     <div className="group block">
@@ -22,32 +66,25 @@ function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) 
             : "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 30px -18px rgba(0,0,0,0.6)",
         }}
       >
+        {/* Project Image */}
+        {p.imageUrl && (
+          <div className="relative w-full aspect-video overflow-hidden border-b border-black/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={p.imageUrl}
+              alt={p.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {/* Glossy overlay for the image */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-50" />
+          </div>
+        )}
+
         <div className="p-4 pt-5">
           <div className="flex items-center justify-between gap-3">
             <h4 className={`text-sm sm:text-base font-semibold transition-colors ${isModal ? "text-[#233457] group-hover:text-[#1a2540]" : "text-white/95 group-hover:text-white"}`}>{p.title}</h4>
             <div className="flex items-center gap-2">
-              {/* Repository Icon */}
-              {hasRepoUrl && (
-                <a
-                  href={p.repo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-md text-white cr-glass-hover transition-transform hover:scale-110"
-                  style={{
-                    border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
-                    background:
-                      "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                  }}
-                  title="View Repository"
-                  aria-label="View Repository"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              )}
               {/* Project Icon */}
               {hasProjectUrl && (
                 <a
@@ -62,8 +99,8 @@ function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) 
                       "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
                   }}
-                  title="View Project"
-                  aria-label="View Project"
+                  title="View Link"
+                  aria-label="View Link"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -114,6 +151,9 @@ export default function ProjectsAdmin() {
   const [deleteModalScale, setDeleteModalScale] = useState(0.96);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const deleteTimerRef = useRef<number | null>(null);
+  const [selectedProjectFiles, setSelectedProjectFiles] = useState<Record<string, File>>({});
+  const [uploadingProjects, setUploadingProjects] = useState<Record<string, boolean>>({});
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   // Form state for editing
   const [formData, setFormData] = useState<ProjectsData>(projectsData);
@@ -215,9 +255,62 @@ export default function ProjectsAdmin() {
     const toastId = showToast("Saving changes...", "loading", 0);
 
     try {
+      const updatedData: ProjectsData = {
+        ...formData,
+        projects: formData.projects || [],
+      };
+      let totalFiles = 0;
+      let completedFiles = 0;
+
+      // Count project files to upload
+      Object.keys(selectedProjectFiles).forEach((projectId) => {
+        if (selectedProjectFiles[projectId]) totalFiles++;
+      });
+
+      // Upload project files
+      for (const projectId of Object.keys(selectedProjectFiles)) {
+        const file = selectedProjectFiles[projectId];
+        if (!file) continue;
+
+        setUploadingProjects((prev) => ({ ...prev, [projectId]: true }));
+        try {
+          const projectUrl = await uploadProjectWithProgress(
+            file,
+            projectId,
+            (progress) => {
+              const overallProgress = totalFiles > 0 
+                ? Math.round((completedFiles / totalFiles) * 100 + (progress / totalFiles))
+                : progress;
+              updateToast(toastId, { 
+                message: `Uploading project image ${completedFiles + 1}/${totalFiles}...`,
+                progress: overallProgress 
+              });
+            }
+          );
+
+          // Update the project with the image URL
+          const projectIndex = updatedData.projects.findIndex(p => p.id === projectId);
+          if (projectIndex !== -1) {
+            updatedData.projects[projectIndex] = {
+              ...updatedData.projects[projectIndex],
+              imageUrl: projectUrl,
+            };
+          }
+
+          completedFiles++;
+        } catch (error) {
+          console.error(`Error uploading project ${projectId}:`, error);
+          setUploadingProjects((prev) => ({ ...prev, [projectId]: false }));
+          throw error;
+        }
+      }
+
+      // Clear selected files after upload
+      setSelectedProjectFiles({});
+
       updateToast(toastId, { message: "Saving to database...", progress: 95 });
-      await saveProjectsData(formData);
-      setProjectsData(formData);
+      await saveProjectsData(updatedData);
+      setProjectsData(updatedData);
       
       updateToast(toastId, { 
         message: "Changes saved successfully!", 
@@ -239,6 +332,103 @@ export default function ProjectsAdmin() {
     setShowEditModal(false);
     setIsRearrangeMode(false);
     setTagInputs({});
+    setSelectedProjectFiles({});
+  };
+
+  // Handle project file select
+  const handleProjectFileSelect = (projectId: string, file: File | null) => {
+    if (!file) {
+      setSelectedProjectFiles((prev) => {
+        const newFiles = { ...prev };
+        delete newFiles[projectId];
+        return newFiles;
+      });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select an image file.", "error");
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      showToast("File size must be less than 10MB.", "error");
+      return;
+    }
+
+    setSelectedProjectFiles((prev) => ({ ...prev, [projectId]: file }));
+  };
+
+  // Upload project with progress
+  const uploadProjectWithProgress = async (
+    file: File,
+    projectId: string,
+    onProgress?: (progress: number) => void
+  ): Promise<string> => {
+    if (!storage) {
+      throw new Error("Firebase Storage is not initialized");
+    }
+
+    if (!auth) {
+      throw new Error("Firebase Auth is not initialized");
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("User must be authenticated to upload files");
+    }
+
+    // Get fresh ID token to ensure authentication
+    try {
+      await user.getIdToken(true); // Force refresh
+    } catch (error) {
+      console.error("Failed to get ID token:", error);
+      throw new Error("Failed to authenticate user");
+    }
+
+    const path = `projects/${projectId}-${Date.now()}.${file.name.split('.').pop()}`;
+
+    return new Promise((resolve, reject) => {
+      const storageRef = ref(storage!, path);
+      
+      // Upload with metadata to ensure proper authentication
+      const uploadTask = uploadBytesResumable(storageRef, file, {
+        contentType: file.type,
+        customMetadata: {
+          uploadedBy: user.uid,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress((prev) => ({ ...prev, [projectId]: progress }));
+          onProgress?.(progress);
+        },
+        (error) => {
+          console.error(`Upload error for project ${projectId}:`, error);
+          setUploadingProjects((prev) => ({ ...prev, [projectId]: false }));
+          setUploadProgress((prev) => ({ ...prev, [projectId]: 0 }));
+          reject(error);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setUploadingProjects((prev) => ({ ...prev, [projectId]: false }));
+            setUploadProgress((prev) => ({ ...prev, [projectId]: 0 }));
+            resolve(downloadURL);
+          } catch (error) {
+            console.error(`Error getting download URL for project ${projectId}:`, error);
+            setUploadingProjects((prev) => ({ ...prev, [projectId]: false }));
+            setUploadProgress((prev) => ({ ...prev, [projectId]: 0 }));
+            reject(error);
+          }
+        }
+      );
+    });
   };
 
   const handleAddProject = () => {
@@ -248,7 +438,7 @@ export default function ProjectsAdmin() {
       desc: "",
       tags: [],
       href: "#",
-      repo: "#",
+      imageUrl: "",
       // isRecent is computed from index (first 2 are recent)
     };
     setFormData({
@@ -700,10 +890,10 @@ export default function ProjectsAdmin() {
                               />
                             </div>
 
-                            {/* Href */}
+                            {/* Project Link */}
                             <div className="mb-3 sm:mb-4">
                               <label className="block text-xs font-semibold text-[#233457] mb-1.5">
-                                Project URL
+                                Project Link
                               </label>
                               <input
                                 type="url"
@@ -714,18 +904,90 @@ export default function ProjectsAdmin() {
                               />
                             </div>
 
-                            {/* Repo */}
+                            {/* Project Image */}
                             <div className="mb-3 sm:mb-4">
                               <label className="block text-xs font-semibold text-[#233457] mb-1.5">
-                                Repository URL
+                                Project Image
                               </label>
-                              <input
-                                type="url"
-                                value={project.repo}
-                                onChange={(e) => handleProjectChange(project.id, "repo", e.target.value)}
-                                className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                                placeholder="https://github.com/..."
-                              />
+                              <div className="space-y-3">
+                                {project.imageUrl ? (
+                                  <div className="relative w-full aspect-video rounded-md overflow-hidden border border-[#233457]/20 group/img">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={project.imageUrl}
+                                      alt="Current project"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleProjectChange(project.id, "imageUrl", "")}
+                                        className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg"
+                                        title="Remove Image"
+                                      >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                          <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="w-full aspect-video rounded-md border-2 border-dashed border-[#233457]/20 bg-[#233457]/5 flex flex-col items-center justify-center p-4 text-center">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#233457]/40 mb-2">
+                                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7m4 0h6m-3-3v6M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    <div className="text-[10px] sm:text-xs text-[#233457]/60">No image uploaded</div>
+                                  </div>
+                                )}
+
+                                <div className="relative">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleProjectFileSelect(project.id, e.target.files?.[0] || null)}
+                                    className="hidden"
+                                    id={`project-file-${project.id}`}
+                                  />
+                                  <label
+                                    htmlFor={`project-file-${project.id}`}
+                                    className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[10px] sm:text-xs font-semibold text-white cursor-pointer active:translate-y-0.5 transition cr-glass-hover w-full"
+                                    style={{
+                                      border: "1px solid color-mix(in oklab, #5ea0ff 35%, white 10%)",
+                                      background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                                    }}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5l5-5 5 5m-5-5v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    <span>{project.imageUrl ? "Change Image" : "Upload Image"}</span>
+                                  </label>
+                                </div>
+
+                                {selectedProjectFiles[project.id] && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold text-[#233457]">
+                                      <span>New image selected:</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleProjectFileSelect(project.id, null)}
+                                        className="text-red-500 hover:text-red-600"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                    <ProjectPreview file={selectedProjectFiles[project.id]} />
+                                    {uploadingProjects[project.id] && (
+                                      <div className="w-full h-1.5 bg-[#233457]/10 rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full bg-[#5ea0ff] transition-all duration-300"
+                                          style={{ width: `${uploadProgress[project.id] || 0}%` }}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
                             {/* Tags */}

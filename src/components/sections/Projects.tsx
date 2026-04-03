@@ -5,7 +5,6 @@ import { getProjectsData, type ProjectsData, type Project, isProjectRecent } fro
 
 function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) {
   const hasProjectUrl = p.href && p.href !== "#";
-  const hasRepoUrl = p.repo && p.repo !== "#";
 
   return (
     <div className="group block">
@@ -21,14 +20,29 @@ function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) 
             : "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 30px -18px rgba(0,0,0,0.6)",
         }}
       >
+        {/* Project Image */}
+        {p.imageUrl && (
+          <div className="relative w-full aspect-video overflow-hidden border-b border-black/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={p.imageUrl}
+              alt={p.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {/* Glossy overlay for the image */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-50" />
+          </div>
+        )}
+
         <div className="p-4 pt-5">
           <div className="flex items-center justify-between gap-3">
             <h4 className={`text-sm sm:text-base font-semibold transition-colors ${isModal ? "text-[#233457] group-hover:text-[#1a2540]" : "text-white/95 group-hover:text-white"}`}>{p.title}</h4>
             <div className="flex items-center gap-2">
-              {/* Repository Icon */}
-              {hasRepoUrl && (
+              {/* Project Icon */}
+              {hasProjectUrl && (
                 <a
-                  href={p.repo}
+                  href={p.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
@@ -39,34 +53,12 @@ function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) 
                       "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
                   }}
-                  title="View Repository"
-                  aria-label="View Repository"
+                  title="View Link"
+                  aria-label="View Link"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              )}
-              {/* Project Icon */}
-              {hasProjectUrl && (
-                <a
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-md text-white cr-glass-hover transition-transform hover:scale-110"
-              style={{
-                border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
-                background:
-                  "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-              }}
-                  title="View Project"
-                  aria-label="View Project"
-            >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+                  </svg>
                 </a>
               )}
             </div>

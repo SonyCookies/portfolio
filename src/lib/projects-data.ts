@@ -7,7 +7,7 @@ export interface Project {
   desc: string;
   tags: string[];
   href: string;
-  repo: string;
+  imageUrl?: string;
   isRecent?: boolean; // Deprecated: kept for backward compatibility, but computed from index
 }
 
@@ -31,7 +31,7 @@ const DEFAULT_PROJECTS_DATA: ProjectsData = {
       desc: "Developed a predictive model for river discharge and climate trends, achieving low error metrics (MAE: 2.64) for local bridge safety.",
       tags: ["LSTM Neural Networks", "Python", "Time-Series Analysis", "APIs"],
       href: "https://github.com/SonyCookies/FLOODPREDICTION",
-      repo: "https://github.com/SonyCookies/FLOODPREDICTION",
+      imageUrl: "https://firebasestorage.googleapis.com/v0/b/portfolio-ea83c.firebasestorage.app/o/projects%2Fflood-prediction.jpg?alt=media",
       isRecent: true,
     },
     {
@@ -40,7 +40,7 @@ const DEFAULT_PROJECTS_DATA: ProjectsData = {
       desc: "Engineered a portable system for real-time egg defect classification and automated sorting using Computer Vision and microcontrollers.",
       tags: ["Computer Vision", "Raspberry Pi", "Arduino Mega", "Next.js/FastAPI"],
       href: "https://megg-kiosk.vercel.app/",
-      repo: "#",
+      imageUrl: "https://firebasestorage.googleapis.com/v0/b/portfolio-ea83c.firebasestorage.app/o/projects%2Fmegg.jpg?alt=media",
       isRecent: true,
     },
     {
@@ -49,7 +49,7 @@ const DEFAULT_PROJECTS_DATA: ProjectsData = {
       desc: "Next-generation public Wi-Fi vending system replacing coin-operated models with an RFID digital credit system. Features ESP32-based authentication, Orange Pi Zero 3 network gateway, Next.js captive portal, Python Flask API, and Google Firestore integration for secure, cashless transactions.",
       tags: ["ESP32", "RFID", "Orange Pi Zero 3", "Next.js", "Python Flask", "Google Firestore", "Iptables", "IoT"],
       href: "#",
-      repo: "#",
+      imageUrl: "",
       isRecent: false,
     },
   ],
@@ -86,7 +86,7 @@ export async function getProjectsData(): Promise<ProjectsData> {
           desc: project.desc || "",
           tags: project.tags || [],
           href: project.href || "#",
-          repo: project.repo || "#",
+          imageUrl: project.imageUrl || "",
           // isRecent is now computed from index, but we keep it for backward compatibility
           isRecent: index < 2,
         })) as Project[],
@@ -124,7 +124,7 @@ export async function saveProjectsData(data: ProjectsData): Promise<void> {
         desc: project.desc || "",
         tags: project.tags || [],
         href: project.href || "#",
-        repo: project.repo || "#",
+        imageUrl: project.imageUrl || "",
         isRecent: index < 2, // First 2 projects are automatically recent
       })),
     };
