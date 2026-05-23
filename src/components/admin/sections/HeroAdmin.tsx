@@ -145,24 +145,109 @@ export default function HeroAdmin() {
   const [uploading, setUploading] = useState({
     banner: false,
     profile: false,
-    resume: false,
   });
   const [uploadProgress, setUploadProgress] = useState({
     banner: 0,
     profile: 0,
-    resume: 0,
   });
   const [selectedFiles, setSelectedFiles] = useState<{
     banner?: File;
     profile?: File;
-    resume?: File;
   }>({});
+
+  // States for tailored resumes
+  const [selectedTailoredFiles, setSelectedTailoredFiles] = useState<Record<number, File>>({});
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeScale, setResumeScale] = useState(0.96);
+
+  useEffect(() => {
+    if (!showResumeModal) return;
+    setResumeScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setResumeScale(1.06);
+      const timer = window.setTimeout(() => {
+        setResumeScale(1.0);
+      }, 120);
+      return () => window.clearTimeout(timer);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [showResumeModal]);
+
+  // Handlers for tailored resumes in edit form
+  const handleAddTailoredResume = () => {
+    const newList = formData.resumes ? [...formData.resumes] : [];
+    newList.push({ label: "", url: "" });
+    setFormData({ ...formData, resumes: newList });
+  };
+
+  const handleRemoveTailoredResume = (indexToRemove: number) => {
+    if (!formData.resumes) return;
+    const newList = formData.resumes.filter((_, idx) => idx !== indexToRemove);
+    
+    // Also remove from selected files
+    setSelectedTailoredFiles((prev) => {
+      const copy = { ...prev };
+      delete copy[indexToRemove];
+      // shift remaining keys down to match new indices
+      const shifted: Record<number, File> = {};
+      Object.keys(copy).forEach((k) => {
+        const idx = parseInt(k, 10);
+        if (idx > indexToRemove) {
+          shifted[idx - 1] = copy[idx];
+        } else {
+          shifted[idx] = copy[idx];
+        }
+      });
+      return shifted;
+    });
+
+    setFormData({ ...formData, resumes: newList });
+  };
+
+  const handleTailoredResumeLabelChange = (indexToUpdate: number, newLabel: string) => {
+    if (!formData.resumes) return;
+    const newList = formData.resumes.map((item, idx) =>
+      idx === indexToUpdate ? { ...item, label: newLabel } : item
+    );
+    setFormData({ ...formData, resumes: newList });
+  };
+
+  const handleTailoredResumeFileSelect = (indexToUpdate: number, file: File | null) => {
+    if (!file) {
+      setSelectedTailoredFiles((prev) => {
+        const copy = { ...prev };
+        delete copy[indexToUpdate];
+        return copy;
+      });
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      alert("Please select a PDF file.");
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert("File size must be less than 5MB.");
+      return;
+    }
+
+    setSelectedTailoredFiles((prev) => ({ ...prev, [indexToUpdate]: file }));
+  };
 
   const openResume = (e?: React.MouseEvent<HTMLAnchorElement>) => {
     e?.preventDefault();
-    if (heroData?.resumeUrl) {
+    if (heroData?.resumes && heroData.resumes.length > 1) {
+      setShowResumeModal(true);
+    } else if (heroData?.resumes && heroData.resumes.length === 1) {
+      const newTab = window.open(heroData.resumes[0].url, "_blank");
+      newTab?.focus();
+    } else if (heroData?.resumeUrl) {
       const newTab = window.open(heroData.resumeUrl, "_blank");
       newTab?.focus();
+    } else {
+      alert("No resume is currently available.");
     }
   };
 
@@ -218,7 +303,7 @@ export default function HeroAdmin() {
 
 
 
-  const handleFileSelect = (type: "banner" | "profile" | "resume", file: File | null) => {
+  const handleFileSelect = (type: "banner" | "profile", file: File | null) => {
     if (!file) {
       setSelectedFiles((prev) => {
         const newFiles = { ...prev };
@@ -229,19 +314,15 @@ export default function HeroAdmin() {
     }
 
     // Validate file types
-    if (type === "resume" && file.type !== "application/pdf") {
-      alert("Please select a PDF file for the resume.");
-      return;
-    }
-    if ((type === "banner" || type === "profile") && !file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/")) {
       alert("Please select an image file.");
       return;
     }
 
-    // Validate file size (max 10MB for images, 5MB for PDF)
-    const maxSize = type === "resume" ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    // Validate file size (max 10MB for images)
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert(`File size must be less than ${type === "resume" ? "5MB" : "10MB"}.`);
+      alert("File size must be less than 10MB.");
       return;
     }
 
@@ -257,6 +338,23 @@ export default function HeroAdmin() {
     const toastId = showToast("Saving changes...", "loading", 0);
 
     try {
+      // Validate tailored resumes
+      if (formData.resumes) {
+        for (let i = 0; i < formData.resumes.length; i++) {
+          const r = formData.resumes[i];
+          if (!r.label.trim()) {
+            removeToast(toastId);
+            showToast("All resume versions must have a label.", "error");
+            return;
+          }
+          if (!r.url && !selectedTailoredFiles[i]) {
+            removeToast(toastId);
+            showToast(`Please upload a PDF file for "${r.label}".`, "error");
+            return;
+          }
+        }
+      }
+
       const updatedData = { ...formData };
       let totalFiles = 0;
       let completedFiles = 0;
@@ -264,7 +362,7 @@ export default function HeroAdmin() {
       // Count files to upload
       if (selectedFiles.banner) totalFiles++;
       if (selectedFiles.profile) totalFiles++;
-      if (selectedFiles.resume) totalFiles++;
+      Object.keys(selectedTailoredFiles).forEach(() => totalFiles++);
 
       // Upload files if selected
       if (selectedFiles.banner) {
@@ -323,12 +421,17 @@ export default function HeroAdmin() {
         }
       }
 
-      if (selectedFiles.resume) {
-        setUploading((prev) => ({ ...prev, resume: true }));
+      // Upload tailored resumes
+      let resumesList = formData.resumes ? [...formData.resumes] : [];
+      for (const key of Object.keys(selectedTailoredFiles)) {
+        const idx = parseInt(key, 10);
+        const file = selectedTailoredFiles[idx];
+        if (!file) continue;
+
         try {
-          const resumeUrl = await uploadFileWithProgress(
-            selectedFiles.resume,
-            `hero/resume-${Date.now()}.pdf`,
+          const fileUrl = await uploadFileWithProgress(
+            file,
+            `hero/resume-tailored-${idx}-${Date.now()}.pdf`,
             "resume",
             (progress) => {
               const overallProgress = totalFiles > 0 
@@ -337,25 +440,31 @@ export default function HeroAdmin() {
               updateToast(toastId, { progress: overallProgress });
             }
           );
-          updatedData.resumeUrl = resumeUrl;
+          
+          resumesList[idx] = {
+            ...resumesList[idx],
+            url: fileUrl
+          };
           completedFiles++;
           const overallProgress = totalFiles > 0 
             ? Math.round((completedFiles / totalFiles) * 100)
             : 100;
           updateToast(toastId, { progress: overallProgress });
         } catch (error) {
-          console.error("Resume upload error:", error);
-          throw new Error("Failed to upload resume");
-        } finally {
-          setUploading((prev) => ({ ...prev, resume: false }));
+          console.error(`Tailored resume upload error at index ${idx}:`, error);
+          throw new Error(`Failed to upload resume version "${resumesList[idx]?.label || idx}"`);
         }
       }
+
+      updatedData.resumes = resumesList;
+      updatedData.resumeUrl = resumesList[0]?.url || "";
 
       // Update hero data and save to Firestore
       updateToast(toastId, { message: "Saving to database...", progress: 95 });
       await saveHeroData(updatedData);
       setHeroData(updatedData);
       setSelectedFiles({});
+      setSelectedTailoredFiles({});
       
       // Show success toast
       updateToast(toastId, { 
@@ -436,7 +545,8 @@ export default function HeroAdmin() {
   const handleCancel = () => {
     setFormData(heroData);
     setSelectedFiles({});
-    setUploadProgress({ banner: 0, profile: 0, resume: 0 });
+    setSelectedTailoredFiles({});
+    setUploadProgress({ banner: 0, profile: 0 });
     setShowEditModal(false);
   };
 
@@ -689,21 +799,26 @@ export default function HeroAdmin() {
                   </svg>
                   <span className="">{data.location}</span>
                 </div>
-                <div
-                  className="inline-flex items-center rounded-md px-3 py-2 text-white/90 text-sm sm:text-base font-semibold mt-2"
-                  style={{
-                    border: "1px solid color-mix(in oklab, var(--cr-blue) 22%, white 10%)",
-                    background:
-                      "linear-gradient(180deg, color-mix(in oklab, var(--cr-blue) 20%, transparent), color-mix(in oklab, var(--cr-navy) 65%, #0b1736 35%))",
-                  }}
-                >
-                  {data.jobTitle}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {data.jobTitle.split(",").map((title) => title.trim()).filter(Boolean).map((title, idx) => (
+                    <div
+                      key={idx}
+                      className="inline-flex items-center rounded-md px-2.5 py-1.5 text-white/90 text-xs sm:text-sm font-semibold"
+                      style={{
+                        border: "1px solid color-mix(in oklab, var(--cr-blue) 22%, white 10%)",
+                        background:
+                          "linear-gradient(180deg, color-mix(in oklab, var(--cr-blue) 20%, transparent), color-mix(in oklab, var(--cr-navy) 65%, #0b1736 35%))",
+                      }}
+                    >
+                      {title}
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="ml-3 shrink-0 grid gap-2 text-sm">
                 <div className="flex flex-col items-center gap-2 sm:hidden">
-                <a
-                  href={data.resumeUrl}
+                 <a
+                  href={data.resumes?.[0]?.url || data.resumeUrl || "#"}
                   onClick={openResume}
                   aria-label="Open resume"
                   title="Resume"
@@ -738,8 +853,8 @@ export default function HeroAdmin() {
                   </a>
                 </div>
                 <div className="hidden sm:grid gap-2">
-                <a
-                  href={data.resumeUrl}
+                 <a
+                  href={data.resumes?.[0]?.url || data.resumeUrl || "#"}
                   onClick={openResume}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-extrabold active:translate-y-0.5 transition text-black cr-glass-hover"
                   target="_blank"
@@ -960,15 +1075,16 @@ export default function HeroAdmin() {
                     {/* Job Title Field */}
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                        Job Title
+                        Job Title(s)
                       </label>
                       <input
                         type="text"
                         value={formData.jobTitle}
                         onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
                         className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                        placeholder="Enter your job title"
+                        placeholder="e.g. Full Stack Developer, Social Media Manager"
                       />
+                      <p className="text-[10px] text-[#233457]/60 mt-1">Separate multiple titles with commas to show them as individual badges.</p>
                     </div>
                   </div>
 
@@ -986,39 +1102,96 @@ export default function HeroAdmin() {
                     />
                   </div>
 
-                  {/* Resume File Upload */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-[#233457] mb-1.5">
-                      Resume (PDF)
-                    </label>
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={(e) => handleFileSelect("resume", e.target.files?.[0] || null)}
-                        className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0] file:cursor-pointer"
-                        disabled={uploading.resume}
-                      />
-                      {selectedFiles.resume && (
-                        <div className="text-xs text-[#233457]/70">
-                          Selected: {selectedFiles.resume.name} ({(selectedFiles.resume.size / 1024 / 1024).toFixed(2)} MB)
+                  {/* Standalone resume upload removed. All resumes are now managed in the Tailored Resumes list below. */}
+
+                  {/* Tailored Resumes Section */}
+                  <div className="border-t border-[#233457]/15 pt-4 mt-2">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-xs sm:text-sm font-semibold text-[#233457]">
+                        Tailored Resumes (Optional)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleAddTailoredResume}
+                        className="inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover cursor-pointer"
+                        style={{
+                          border: "1px solid color-mix(in oklab, #10b981 35%, white 10%)",
+                          background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
+                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                        <span>Add Version</span>
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-3.5">
+                      {(formData.resumes || []).map((resume, idx) => (
+                        <div key={idx} className="p-3 rounded-lg border border-[#233457]/15 bg-white/40 relative animate-in fade-in slide-in-from-top-1 duration-150">
+                          {/* Remove Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTailoredResume(idx)}
+                            className="absolute top-2 right-2 p-1.5 rounded-md text-white hover:bg-red-600 transition-colors z-10 cursor-pointer"
+                            style={{
+                              background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.2)",
+                            }}
+                            title="Remove resume version"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2"/>
+                              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2"/>
+                            </svg>
+                          </button>
+                          
+                          {/* Label field */}
+                          <div className="mb-2.5">
+                            <label className="block text-[11px] font-semibold text-[#233457] mb-1">
+                              Resume Label / Specialty
+                            </label>
+                            <input
+                              type="text"
+                              value={resume.label}
+                              onChange={(e) => handleTailoredResumeLabelChange(idx, e.target.value)}
+                              className="w-full px-2.5 py-1.5 rounded text-xs text-[#233457] bg-white border border-[#233457]/15 focus:outline-none focus:ring-1 focus:ring-[#5ea0ff]"
+                              placeholder="e.g. Social Media Marketing"
+                            />
+                          </div>
+                          
+                          {/* File field */}
+                          <div>
+                            <label className="block text-[11px] font-semibold text-[#233457] mb-1">
+                              PDF File
+                            </label>
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              onChange={(e) => handleTailoredResumeFileSelect(idx, e.target.files?.[0] || null)}
+                              className="w-full text-xs text-[#233457] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-[#5ea0ff] file:text-white hover:file:bg-[#2f66d0]"
+                            />
+                            {selectedTailoredFiles[idx] && (
+                              <div className="text-[10px] text-[#233457]/70 mt-1">
+                                Selected: {selectedTailoredFiles[idx].name} ({(selectedTailoredFiles[idx].size / 1024 / 1024).toFixed(2)} MB)
+                              </div>
+                            )}
+                            {resume.url && !selectedTailoredFiles[idx] && (
+                              <div className="text-[10px] text-[#233457]/70 mt-1">
+                                Current: <a href={resume.url} target="_blank" rel="noopener noreferrer" className="text-[#5ea0ff] hover:underline">View PDF</a>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      {heroData.resumeUrl && !selectedFiles.resume && (
-                        <div className="text-xs text-[#233457]/70">
-                          Current: <a href={heroData.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-[#5ea0ff] hover:underline">View Resume</a>
-                        </div>
-                      )}
-                      {uploading.resume && (
-                        <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">
-                          <div
-                            className="h-full bg-[#5ea0ff] transition-all duration-300"
-                            style={{ width: `${uploadProgress.resume}%` }}
-                          />
+                      ))}
+                      
+                      {(!formData.resumes || formData.resumes.length === 0) && (
+                        <div className="text-center text-xs text-[#233457]/60 italic py-2">
+                          No tailored resume versions added yet.
                         </div>
                       )}
                     </div>
-                    <p className="text-[10px] sm:text-xs text-[#233457]/60 mt-1">Upload a PDF file (max 5MB)</p>
                   </div>
 
                   {/* Action Buttons */}
@@ -1026,7 +1199,7 @@ export default function HeroAdmin() {
                     <button
                       type="button"
                       onClick={handleSave}
-                      disabled={uploading.banner || uploading.profile || uploading.resume}
+                      disabled={uploading.banner || uploading.profile}
                       className="inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{
                         border: "1px solid color-mix(in oklab, var(--accent) 55%, #8f6a12 45%)",
@@ -1183,6 +1356,94 @@ export default function HeroAdmin() {
                   fill
                   className={`object-cover transition-opacity duration-500 ${revealPhase === "profile" ? "opacity-100" : "opacity-0"}`}
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Resume Option Selection Modal */}
+      {showResumeModal && (
+        <div className="fixed inset-0 z-[220] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Select Resume">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowResumeModal(false)} />
+          <div className="relative z-[221] w-full max-w-[min(94vw,400px)] rounded-[20px] overflow-hidden animate-in fade-in zoom-in-95 duration-150" style={{
+            background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+            transform: `scale(${resumeScale})`,
+            transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+          }}>
+            <div className="relative flex items-center px-4 py-4 border-b border-white/10" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            }}>
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-xs sm:text-sm text-center uppercase" style={{
+                textShadow: "0 2px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45)",
+                letterSpacing: 1,
+              }}>Select Resume</div>
+              <button
+                type="button"
+                onClick={() => setShowResumeModal(false)}
+                aria-label="Close"
+                className="grid place-items-center z-10"
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 26,
+                  height: 26,
+                  borderRadius: 6,
+                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                  boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(0,0,0,0.45)",
+                }}
+              >
+                <span className="text-white font-extrabold text-xs" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+              </button>
+            </div>
+            <div className="px-4 py-5 sm:px-5">
+              <div className="rounded-xl p-3 sm:p-4" style={{
+                background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                border: "1px solid rgba(0,0,0,0.12)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+              }}>
+                <div className="space-y-2.5">
+                  {heroData.resumes?.map((resume, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        window.open(resume.url, "_blank");
+                        setShowResumeModal(false);
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 rounded-lg text-left transition-all border cr-glass-hover cursor-pointer"
+                      style={{
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        background: "linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.04), inset 0 1px 0 #fff",
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-md bg-[#5ea0ff]/10 text-[#2f66d0]">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-extrabold text-[#233457]">{resume.label}</div>
+                          <div className="text-[10px] text-[#233457]/60 mt-0.5">Click to view or download PDF</div>
+                        </div>
+                      </div>
+                      <div className="text-[#2f66d0]">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                  {/* Fallback default button removed to only show tailored resumes in this list */}
+                </div>
               </div>
             </div>
           </div>

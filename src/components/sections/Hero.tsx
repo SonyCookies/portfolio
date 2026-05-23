@@ -17,7 +17,24 @@ export default function Hero() {
   const [celebrate, setCelebrate] = useState(false);
   const phaseTimeoutRef = useRef<number | null>(null);
   const spinStartRef = useRef<number | null>(null);
-  
+
+  // Resume option modal state
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeScale, setResumeScale] = useState(0.96);
+
+  useEffect(() => {
+    if (!showResumeModal) return;
+    setResumeScale(0.96);
+    const raf = requestAnimationFrame(() => {
+      setResumeScale(1.06);
+      const timer = window.setTimeout(() => {
+        setResumeScale(1.0);
+      }, 120);
+      return () => window.clearTimeout(timer);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [showResumeModal]);
+
   // Hero data from Firestore
   const [heroData, setHeroData] = useState<HeroData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,9 +56,16 @@ export default function Hero() {
 
   const openResume = (e?: React.MouseEvent<HTMLAnchorElement>) => {
     e?.preventDefault();
-    if (heroData?.resumeUrl) {
+    if (heroData?.resumes && heroData.resumes.length > 1) {
+      setShowResumeModal(true);
+    } else if (heroData?.resumes && heroData.resumes.length === 1) {
+      const newTab = window.open(heroData.resumes[0].url, "_blank");
+      newTab?.focus();
+    } else if (heroData?.resumeUrl) {
       const newTab = window.open(heroData.resumeUrl, "_blank");
       newTab?.focus();
+    } else {
+      alert("No resume is currently available.");
     }
   };
 
@@ -290,36 +314,41 @@ export default function Hero() {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                  <h1
-                    className="truncate text-2xl sm:text-3xl font-extrabold tracking-tight"
-                    style={{ textShadow: "0 2px 0 rgba(0,0,0,0.45)" }}
-                  >
-                    {data.name}
-                  </h1>
+                <h1
+                  className="truncate text-2xl sm:text-3xl font-extrabold tracking-tight"
+                  style={{ textShadow: "0 2px 0 rgba(0,0,0,0.45)" }}
+                >
+                  {data.name}
+                </h1>
                 <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1" />
               </div>
               <div className="mt-2 flex items-start gap-2 text-white/85 text-xs sm:text-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 12 6 12s6-6.75 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/>
+                  <path d="M12 2C8.686 2 6 4.686 6 8c0 5.25 6 12 6 12s6-6.75 6-12c0-3.314-2.686-6-6-6zm0 8.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor" />
                 </svg>
-                  <span className="">{data.location}</span>
+                <span className="">{data.location}</span>
               </div>
-              <div
-                className="inline-flex items-center rounded-md px-3 py-2 text-white/90 text-sm sm:text-base font-semibold mt-2"
-                style={{
-                  border: "1px solid color-mix(in oklab, var(--cr-blue) 22%, white 10%)",
-                  background:
-                    "linear-gradient(180deg, color-mix(in oklab, var(--cr-blue) 20%, transparent), color-mix(in oklab, var(--cr-navy) 65%, #0b1736 35%))",
-                }}
-                >
-                  {data.jobTitle}
-                </div>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {data.jobTitle.split(",").map((title) => title.trim()).filter(Boolean).map((title, idx) => (
+                  <div
+                    key={idx}
+                    className="inline-flex items-center rounded-md px-2.5 py-1.5 text-white/90 text-xs sm:text-sm font-semibold"
+                    style={{
+                      border: "1px solid color-mix(in oklab, var(--cr-blue) 22%, white 10%)",
+                      background:
+                        "linear-gradient(180deg, color-mix(in oklab, var(--cr-blue) 20%, transparent), color-mix(in oklab, var(--cr-navy) 65%, #0b1736 35%))",
+                    }}
+                  >
+                    {title}
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="ml-3 shrink-0 grid gap-2 text-sm">
               {/* mobile: icon-only circular buttons */}
               <div className="flex flex-col items-center gap-2 sm:hidden">
                 <a
-                  href={data.resumeUrl}
+                  href={data.resumes?.[0]?.url || data.resumeUrl || "#"}
                   onClick={openResume}
                   aria-label="Open resume"
                   title="Resume"
@@ -356,7 +385,7 @@ export default function Hero() {
               {/* sm+: text buttons */}
               <div className="hidden sm:grid gap-2">
                 <a
-                  href={data.resumeUrl}
+                  href={data.resumes?.[0]?.url || data.resumeUrl || "#"}
                   onClick={openResume}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-extrabold active:translate-y-0.5 transition text-black cr-glass-hover"
                   target="_blank"
@@ -438,11 +467,11 @@ export default function Hero() {
                 // provided via CSS variables for the FLIP style animation
                 ...(revealVars
                   ? ({
-                      ["--cr-reveal-x"]: `${revealVars.x}px`,
-                      ["--cr-reveal-y"]: `${revealVars.y}px`,
-                      ["--cr-reveal-scale"]: `${revealVars.scale}`,
-                      ["--cr-reveal-rot"]: `${revealVars.rot}deg`,
-                    } as unknown as React.CSSProperties)
+                    ["--cr-reveal-x"]: `${revealVars.x}px`,
+                    ["--cr-reveal-y"]: `${revealVars.y}px`,
+                    ["--cr-reveal-scale"]: `${revealVars.scale}`,
+                    ["--cr-reveal-rot"]: `${revealVars.rot}deg`,
+                  } as unknown as React.CSSProperties)
                   : {}),
                 borderColor: "#000",
                 boxShadow:
@@ -540,7 +569,94 @@ export default function Hero() {
           </div>
         </div>
       )}
-      
+      {/* Resume Option Selection Modal */}
+      {showResumeModal && (
+        <div className="fixed inset-0 z-[110] grid place-items-center p-2 sm:p-4" role="dialog" aria-modal="true" aria-label="Select Resume">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowResumeModal(false)} />
+          <div className="relative z-[111] w-full max-w-[min(94vw,400px)] rounded-[20px] overflow-hidden animate-in fade-in zoom-in-95 duration-150" style={{
+            background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
+            transform: `scale(${resumeScale})`,
+            transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
+          }}>
+            <div className="relative flex items-center px-4 py-4 border-b border-white/10" style={{
+              background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
+            }}>
+              <div className="absolute left-1/2 -translate-x-1/2 font-extrabold text-white tracking-wide text-xs sm:text-sm text-center uppercase" style={{
+                textShadow: "0 2px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45)",
+                letterSpacing: 1,
+              }}>Select Resume</div>
+              <button
+                type="button"
+                onClick={() => setShowResumeModal(false)}
+                aria-label="Close"
+                className="grid place-items-center z-10"
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 26,
+                  height: 26,
+                  borderRadius: 6,
+                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                  boxShadow: "inset 0 3px 0 rgba(255,255,255,0.85), 0 2px 0 rgba(0,0,0,0.25)",
+                  border: "1px solid rgba(0,0,0,0.45)",
+                }}
+              >
+                <span className="text-white font-extrabold text-xs" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
+              </button>
+            </div>
+            <div className="px-4 py-5 sm:px-5">
+              <div className="rounded-xl p-3 sm:p-4" style={{
+                background: "linear-gradient(180deg, #f5f9ff 0%, #e3ecfb 40%, #cfdbf1 100%)",
+                border: "1px solid rgba(0,0,0,0.12)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+              }}>
+                <div className="space-y-2.5">
+                  {data.resumes?.map((resume, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        window.open(resume.url, "_blank");
+                        setShowResumeModal(false);
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 rounded-lg text-left transition-all border cr-glass-hover cursor-pointer"
+                      style={{
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        background: "linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.04), inset 0 1px 0 #fff",
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-md bg-[#5ea0ff]/10 text-[#2f66d0]">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-extrabold text-[#233457]">{resume.label}</div>
+                          <div className="text-[10px] text-[#233457]/60 mt-0.5">Click to view or download PDF</div>
+                        </div>
+                      </div>
+                      <div className="text-[#2f66d0]">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                  {/* Fallback default button removed to only show tailored resumes in this list */}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

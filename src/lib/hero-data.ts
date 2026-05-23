@@ -1,6 +1,11 @@
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
+export interface ResumeOption {
+  label: string;
+  url: string;
+}
+
 export interface HeroData {
   name: string;
   location: string;
@@ -9,6 +14,7 @@ export interface HeroData {
   resumeUrl: string;
   bannerImage: string;
   profilePhoto: string;
+  resumes?: ResumeOption[];
 }
 
 const DEFAULT_HERO_DATA: HeroData = {
