@@ -74,7 +74,7 @@ function CertItem({
   onClick?: () => void;
   innerRef?: (node: HTMLDivElement | null) => void;
 }) {
-  const { title, org, href, details } = cert;
+  const { title, org, href, details, imageUrl } = cert;
   if (!isModal) {
     return (
       <div 
@@ -122,6 +122,27 @@ function CertItem({
       </div>
       
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onViewPhoto?.();
+            }}
+            className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+            style={{
+              border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+              background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+            </svg>
+            <span className="truncate">View Certificate</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={(e) => {
@@ -1063,6 +1084,20 @@ export default function CertificationsAdmin() {
                                     </div>
                                     <CertificatePreview file={selectedCertificateFiles[certificate.id]} />
                                   </>
+                                )}
+                                {certificate.imageUrl && !selectedCertificateFiles[certificate.id] && (
+                                  <div className="text-xs text-[#233457]/70 mt-1">
+                                    Current: <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCert(certificate);
+                                        setShowPhotoModal(true);
+                                      }}
+                                      className="text-[#5ea0ff] hover:underline cursor-pointer font-semibold"
+                                    >
+                                      View Certificate
+                                    </button>
+                                  </div>
                                 )}
                                 {uploadingCertificates[certificate.id] && (
                                   <div className="w-full bg-[#233457]/10 rounded-md h-2 overflow-hidden">

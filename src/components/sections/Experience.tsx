@@ -204,7 +204,7 @@ export default function Experience() {
             </div>
           </div>
         ) : (
-          <TimelineContent timeline={timeline} />
+          <TimelineContent timeline={timeline.filter((item) => item.showInQuickview !== false)} />
         )}
       </Card>
 

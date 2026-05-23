@@ -217,6 +217,7 @@ export default function ExperienceAdmin() {
       start: "",
       end: "",
       awards: [],
+      showInQuickview: true,
     };
     setFormData({
       ...formData,
@@ -230,7 +231,7 @@ export default function ExperienceAdmin() {
     setShowDeleteModal(true);
   };
 
-  const handleExperienceChange = (id: string, field: keyof ExperienceItem, value: string | string[]) => {
+  const handleExperienceChange = (id: string, field: keyof ExperienceItem, value: string | string[] | boolean) => {
     const updated = formData.items.map((item) =>
       item.id === id ? { ...item, [field]: value } : item
     );
@@ -444,7 +445,7 @@ export default function ExperienceAdmin() {
           }
           className="col-span-full lg:col-span-5 xl:col-span-4 h-full flex flex-col"
         >
-          <TimelineContent timeline={experienceData.items} />
+          <TimelineContent timeline={experienceData.items.filter((item) => item.showInQuickview !== false)} />
         </Card>
       </div>
 
@@ -594,6 +595,21 @@ export default function ExperienceAdmin() {
                           {index + 1}
                         </div>
 
+                        {/* Status Badge - Only show when not in rearrange mode */}
+                        {!isRearrangeMode && (
+                          <div className="absolute top-2 right-12 flex gap-1.5 z-10">
+                            {item.showInQuickview === false ? (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[9px] font-extrabold bg-red-100/90 text-red-800 border border-red-200/80 shadow-sm" style={{ textShadow: "none" }}>
+                                Hidden
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[9px] font-extrabold bg-emerald-100/90 text-emerald-800 border border-emerald-200/80 shadow-sm" style={{ textShadow: "none" }}>
+                                Quickview
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Delete Button - Only show when not in rearrange mode */}
                         {!isRearrangeMode && (
                           <button
@@ -617,7 +633,14 @@ export default function ExperienceAdmin() {
                         {isRearrangeMode ? (
                           <div className="pl-8 pr-2 flex items-center justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs sm:text-sm font-semibold text-[#233457] truncate">{item.role || "Untitled"}</div>
+                              <div className="text-xs sm:text-sm font-semibold text-[#233457] truncate flex items-center gap-1.5">
+                                <span>{item.role || "Untitled"}</span>
+                                {item.showInQuickview === false && (
+                                  <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[8px] font-extrabold bg-red-100 text-red-800 border border-red-200/50" style={{ textShadow: "none" }}>
+                                    Hidden
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-[10px] sm:text-xs text-[#233457]/70 truncate">{item.org || "No organization"}</div>
                             </div>
                             <div className="shrink-0">
@@ -680,6 +703,32 @@ export default function ExperienceAdmin() {
                                 className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
                                 placeholder="e.g., 2026 or Present (leave empty if ongoing)"
                               />
+                            </div>
+
+                            {/* Show in Quickview Toggle */}
+                            <div className="mb-3 sm:mb-4 pl-6 flex items-center justify-between gap-4">
+                              <div>
+                                <label className="block text-xs font-semibold text-[#233457]">
+                                  Show in Quickview
+                                </label>
+                                <span className="block text-[10px] font-normal text-[#233457]/60 mt-0.5">
+                                  If enabled, this will be displayed on the main page timeline (still included in 'View Full').
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleExperienceChange(item.id, "showInQuickview", !(item.showInQuickview ?? true))}
+                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] ${
+                                  (item.showInQuickview ?? true) ? "bg-[#10b981]" : "bg-gray-300"
+                                }`}
+                                aria-label={`Toggle Quickview visibility for ${item.role || "this item"}`}
+                              >
+                                <span
+                                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    (item.showInQuickview ?? true) ? "translate-x-5" : "translate-x-0"
+                                  }`}
+                                />
+                              </button>
                             </div>
 
                             {/* Awards Section */}

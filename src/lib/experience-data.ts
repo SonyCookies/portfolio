@@ -8,6 +8,7 @@ export interface ExperienceItem {
   start: string;
   end?: string;
   awards?: string[];
+  showInQuickview?: boolean;
 }
 
 export interface ExperienceData {
