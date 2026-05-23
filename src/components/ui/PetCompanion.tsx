@@ -407,57 +407,57 @@ export default function PetCompanion() {
     const quotes: Record<Breed, string[]> = {
       ginger: [
         "Meow! 🐾",
-        "SonyCookies are delicious! 🍪",
-        "Ready for action! ✨",
-        "Wiggle wiggle...",
-        "Purr... Sonny is coding! 💻",
-        "Hire Sonny! He is awesome! 🧡💻",
-        "Need a full-stack dev? Hire Sonny! 💼",
+        "Cookies? Mas masarap si Sonny mag-code! 🍪💻",
+        "Hala, i-hire nyo na si Sonny para may pambili kami ng chimken! 🍗🥺",
+        "Wiggle wiggle... support nyo naman amo ko! 💕",
+        "Busy si Sonny, wag nyo guluhin! 💻🐾",
+        "Please naman, i-hire nyo na sya para may pagkain kami! 🐟🥺",
+        "Looking for jowa for our servant... chariz, hire nyo muna! 💼😜",
       ],
       siamese: [
         "Mew! 🐈",
-        "Need a break? ☕",
-        "Let's write some code! 🚀",
-        "Aesthetically pleasing! ✨",
-        "Catch me if you can! ⚡",
-        "Open for opportunities! Hire Sonny! 🚀",
-        "Hire Sonny today! ⚡✨",
+        "Coffee break muna, baka ma-burnout amo ko! ☕",
+        "Seryoso to: napakahusay ni Sonny! Hire him! 🚀",
+        "Gusto mo ng magandang UI? Sonny is key! ✨",
+        "Bilis! Click nyo na yung 'Hire Me' button! ⚡💼",
+        "Bakit di nyo pa sya tinetext? Free naman sya! 📲🐈",
+        "Servant namin si Sonny, pero boss sa coding! 👑💻",
       ],
       tuxedo: [
         "Mrrrow... 🕶️",
-        "Looking sharp! 🎩",
-        "Unlock those photo chests! 🗝️",
-        "Time for catnaps...",
-        "I'm the boss here! 👑",
-        "Want elite code? Hire Sonny! 👑",
-        "Hire Sonny for high-end web dev! 🎩",
+        "Suot ko tuxedo ko para sa interview ni Sonny. 🎩",
+        "Open those chests! May kayamanan dyan! 🗝️",
+        "Tulog muna ako, pero si Sonny dapat gising mag-code! 😴",
+        "I am the general commander, and I approve Sonny! 👑",
+        "Huwag nang mag-hesitate, hire Sonny now! 🕶️💼",
+        "Amo ko yan, elite coder yan! 🎩✨",
       ],
       tabby: [
         "Purr... I'm Mochi! 🍪",
-        "Forehead 'M' for Master Coder! 💻",
-        "Let's play! 🎾",
-        "Belly rubs please! 💕",
-        "Meow meow!",
-        "Looking for talent? Hire Sonny! 🐾",
+        "Forehead M means 'Mahusay' sa React! 💻✨",
+        "Belly rubs muna bago high-quality code! 💕",
+        "Sabi ni Sonny, cookies are life. Agree! 🍪🐾",
+        "Hoy recruiter! I-hire mo na to, sige na please! 🥺🐾",
+        "Pang-world class ang portfolio! Hire nyo na! 🌏",
         "SonyCookies are great, but Sonny is better! Hire him! 🍪",
       ],
       calico: [
-        "Mew mew! I'm Mingo! 🐾",
-        "Look at my patchy spots! 🎨",
-        "SonyCookies are perfect! 🍪",
-        "Nap time under the sun... ☀️",
-        "Happy tail wags! 💓",
-        "Dynamic designer & dev! Hire Sonny! 🎨",
-        "Hire Sonny! You won't regret it! 💓",
+        "Mingo here! 🎨🐾",
+        "Spots ko colorful, parang full-stack projects ni Sonny! 🎨💻",
+        "Ang cute ko, pero mas cute yung projects dito! ✨",
+        "Paki-hire po amo ko para ma-spoil nya ako ng treats! 🥺🍬",
+        "Servant namin si Sonny, looking for dynamic team to adopt him! 💼",
+        "Walang jowa si amo, pero loyal naman sa deadline! 😜💔",
+        "High performance, zero bugs! Subukan nyo! ⚡",
       ],
       tilapia: [
-        "Mew! Maki the Tilapia cat here! 🐟🐾",
-        "Do I look like a delicious fish? 🐠",
-        "SonyCookies are as good as tuna! 🍪🐟",
-        "Swimming through your code! 🌊💻",
-        "Let's catch some bugs! 🪲",
-        "He's a catch! Hire Sonny! 🐟🎣",
-        "Hook a top-tier developer! Hire Sonny! 🐠",
+        "Mew! Maki the Tilapia cat! 🐟🐾",
+        "Isdang pusa? Yes, that's me! 🐠",
+        "Lasang tuna ba ang SonyCookies? 🍪🐟",
+        "Swimming through Next.js code! 🌊💻",
+        "Recruiter, i-hook mo na itong top-tier developer! 🎣💼",
+        "Wag na humanap ng iba, si Sonny na ang right catch! 🐟✨",
+        "Witty cat for a witty developer! Hire Sonny! 🐠👑",
       ],
     };
 
@@ -1042,7 +1042,10 @@ export default function PetCompanion() {
 
       {cats.map((cat) => {
         const isSleeping = cat.state === "sleeping";
-        const isWalking = cat.state === "walking";
+        const isWalking = cat.state === "walking" ||
+                          cat.state === "playing" ||
+                          (cat.state === "climbing" && cat.climbPhase === "approaching") ||
+                          (cat.state === "sipping" && cat.sipPhase === "approaching");
         const isJumping = cat.state === "jumping";
         const isScrubbing = cat.state === "scrubbing";
         const isPlaying = cat.state === "playing";
