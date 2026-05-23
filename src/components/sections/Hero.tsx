@@ -315,12 +315,12 @@ export default function Hero() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1
-                  className="truncate text-2xl sm:text-3xl font-extrabold tracking-tight"
+                  className="text-2xl sm:text-3xl font-extrabold tracking-tight break-words line-clamp-2"
                   style={{ textShadow: "0 2px 0 rgba(0,0,0,0.45)" }}
                 >
                   {data.name}
                 </h1>
-                <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1" />
+                <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1 shrink-0" />
               </div>
               <div className="mt-2 flex items-start gap-2 text-white/85 text-xs sm:text-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>

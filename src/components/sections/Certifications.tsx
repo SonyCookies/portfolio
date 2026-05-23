@@ -256,7 +256,7 @@ export default function Certifications() {
           <button
             type="button"
             onClick={() => setShowFull(true)}
-          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
+          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover whitespace-nowrap shrink-0"
           style={{
             border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
             background:

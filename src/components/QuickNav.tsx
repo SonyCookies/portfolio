@@ -30,6 +30,19 @@ export default function QuickNav() {
   const aboutTimerRef = useRef<number | null>(null);
   const photoTimerRef = useRef<number | null>(null);
   const photoPreviewTimerRef = useRef<number | null>(null);
+
+  // States and handlers for gamified image vault chests
+  const [unlockedChests, setUnlockedChests] = useState<Record<string, boolean>>({});
+  const [openingChests, setOpeningChests] = useState<Record<string, boolean>>({});
+
+  const unlockChest = (photoId: string) => {
+    if (openingChests[photoId] || unlockedChests[photoId]) return;
+    setOpeningChests(prev => ({ ...prev, [photoId]: true }));
+    setTimeout(() => {
+      setUnlockedChests(prev => ({ ...prev, [photoId]: true }));
+      setOpeningChests(prev => ({ ...prev, [photoId]: false }));
+    }, 600);
+  };
   useEffect(() => {
     if (!showAbout) return;
     setAboutScale(0.96);
@@ -392,68 +405,133 @@ export default function QuickNav() {
                         📸 Arena photographers are gearing up. Photos coming soon!
                           </div>
                         ) : (
-                          <div className="grid grid-cols-1 gap-4">
-                            {(quickNavData.photos || []).map((photo: Photo) => (
-                              <div
-                                key={photo.id}
-                                className="rounded-lg overflow-hidden border border-[#233457]/20"
-                                style={{
-                                  background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
-                                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
-                                }}
-                              >
-                                <div className="relative w-full aspect-video bg-[#233457]/10">
-                                  {photo.imageUrl ? (
-                                    <Image
-                                      src={photo.imageUrl}
-                                      alt={photo.title || photo.caption || "Photo"}
-                                      fill
-                                      className="object-cover"
-                                      unoptimized
-                                    />
-                                  ) : (
-                                    <div className="flex items-center justify-center h-full text-[#233457]/40">
-                                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
-                                      </svg>
-                                    </div>
-                                  )}
-                                </div>
-                                {photo.title && (
-                                  <div className="px-3 py-2 text-sm font-semibold text-[#233457] border-t border-[#233457]/10">
-                                    {photo.title}
-                                  </div>
-                                )}
-                                {photo.caption && (
-                                  <div className="px-3 py-2 text-xs text-[#233457]/80 border-t border-[#233457]/10">
-                                    {photo.caption}
-                                  </div>
-                                )}
-                                {photo.imageUrl && (
-                                  <div className="px-3 py-2 border-t border-[#233457]/10">
+                          <div className="w-full">
+                            <style dangerouslySetInnerHTML={{ __html: `
+                              @keyframes chestWiggle {
+                                0%, 100% { transform: rotate(0deg) scale(1); }
+                                20%, 60% { transform: rotate(-4deg) scale(1.03); }
+                                40%, 80% { transform: rotate(4deg) scale(1.03); }
+                              }
+                              @keyframes chestOpen {
+                                0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+                                50% { transform: scale(1.1) rotate(-8deg); filter: brightness(1.5) drop-shadow(0 0 15px rgba(234,179,8,0.8)); }
+                                100% { transform: scale(0) rotate(15deg); opacity: 0; }
+                              }
+                              .cr-chest-wiggle:hover .cr-chest-svg {
+                                animation: chestWiggle 0.4s ease-in-out infinite;
+                              }
+                              .cr-chest-opening {
+                                animation: chestOpen 0.6s cubic-bezier(.36,.07,.19,.97) forwards;
+                                pointer-events: none;
+                              }
+                            `}} />
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                              {(quickNavData.photos || []).map((photo: Photo, idx: number) => (
+                                unlockedChests[photo.id] ? (
+                                  <div
+                                    key={photo.id}
+                                    className="rounded-xl overflow-hidden border border-[#233457]/20 flex flex-col relative aspect-video sm:aspect-square group transition-all duration-300 animate-in zoom-in-95"
+                                    style={{
+                                      background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
+                                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
+                                    }}
+                                  >
+                                    {/* Re-lock Button */}
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        setSelectedPhoto(photo);
-                                        setShowPhotoPreviewModal(true);
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setUnlockedChests(prev => {
+                                          const copy = { ...prev };
+                                          delete copy[photo.id];
+                                          return copy;
+                                        });
                                       }}
-                                      className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold text-white active:translate-y-0.5 transition cr-glass-hover w-full"
-                                      style={{
-                                        border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
-                                        background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-                                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                                      }}
+                                      title="Lock Chest"
+                                      className="absolute top-1.5 right-1.5 z-10 size-6 rounded-md grid place-items-center bg-[#233457]/20 hover:bg-yellow-500 text-white hover:text-gray-900 border border-[#233457]/10 transition active:translate-y-0.5 cursor-pointer"
                                     >
                                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                       </svg>
-                                      <span className="truncate">View Photo</span>
                                     </button>
+
+                                    <div className="relative w-full flex-1 bg-[#233457]/10 cursor-pointer overflow-hidden" onClick={() => {
+                                      setSelectedPhoto(photo);
+                                      setShowPhotoPreviewModal(true);
+                                    }}>
+                                      {photo.imageUrl ? (
+                                        <Image
+                                          src={photo.imageUrl}
+                                          alt={photo.title || photo.caption || "Photo"}
+                                          fill
+                                          className="object-cover group-hover:scale-105 transition duration-500"
+                                          unoptimized
+                                        />
+                                      ) : (
+                                        <div className="flex items-center justify-center h-full text-[#233457]/40">
+                                          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                                          </svg>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Title overlay on hover */}
+                                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2 text-white">
+                                        {photo.title && (
+                                          <div className="text-xs font-bold truncate">
+                                            {photo.title}
+                                          </div>
+                                        )}
+                                        {photo.caption && (
+                                          <div className="text-[10px] text-white/80 line-clamp-2 mt-0.5 leading-tight">
+                                            {photo.caption}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
-                                )}
-                              </div>
-                            ))}
+                                ) : (
+                                  <div
+                                    key={photo.id}
+                                    onClick={() => unlockChest(photo.id)}
+                                    className={`relative aspect-[4/3] sm:aspect-square flex flex-col justify-center items-center rounded-xl cursor-pointer transition-all duration-300 select-none group cr-chest-wiggle ${openingChests[photo.id] ? "cr-chest-opening" : ""}`}
+                                    style={{
+                                      background: "transparent",
+                                      border: "none",
+                                      boxShadow: "none",
+                                    }}
+                                  >
+                                    <div className="absolute -inset-6 bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_65%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    
+                                    <div className="relative z-10 flex flex-col items-center gap-2 cr-chest-svg">
+                                      <svg viewBox="0 0 24 24" fill="none" className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 transition-transform duration-300 group-hover:scale-105">
+                                        <path d="M4 10V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3H4Z" fill="url(#lidGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
+                                        <path d="M4 10v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7H4Z" fill="url(#baseGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
+                                        <path d="M8 4v16M16 4v16" stroke="#854d0e" strokeWidth="1.5" opacity="0.8" />
+                                        <rect x="10" y="8" width="4" height="5" rx="1" fill="#facc15" stroke="#854d0e" strokeWidth="1" />
+                                        <circle cx="12" cy="10" r="0.8" fill="#000" />
+                                        <line x1="12" y1="10.8" x2="12" y2="12" stroke="#000" strokeWidth="1.2" strokeLinecap="round" />
+                                        <defs>
+                                          <linearGradient id="lidGradVisitor" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#f59e0b" />
+                                            <stop offset="100%" stopColor="#d97706" />
+                                          </linearGradient>
+                                          <linearGradient id="baseGradVisitor" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#d97706" />
+                                            <stop offset="100%" stopColor="#78350f" />
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase text-[#7c2d12] group-hover:text-amber-800 transition-all text-center px-1 mt-1">
+                                        {photo.title ? `Unlock ${photo.title}` : `Vault Chest #${idx + 1}`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>

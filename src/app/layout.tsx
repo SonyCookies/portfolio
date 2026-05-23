@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import FabMenu from "@/components/FabMenu";
 import ToastContainer from "@/components/ui/Toast";
+import PetCompanion from "@/components/ui/PetCompanion";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +50,7 @@ export default function RootLayout({
         <div>{children}</div>
         <FabMenu />
         <ToastContainer />
+        <PetCompanion />
       </body>
     </html>
   );
