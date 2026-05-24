@@ -8,7 +8,9 @@ export default function Testimonials() {
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
-  const count = testimonialsData.testimonials.length;
+
+  const approvedTestimonials = (testimonialsData.testimonials || []).filter(t => t.approved !== false);
+  const count = approvedTestimonials.length;
 
   // Load testimonials data from Firestore
   useEffect(() => {
@@ -100,7 +102,7 @@ export default function Testimonials() {
     );
   }
 
-  const t = testimonialsData.testimonials[index];
+  const t = approvedTestimonials[index];
 
   return (
     <Card
@@ -118,11 +120,14 @@ export default function Testimonials() {
       <div className="relative" onMouseEnter={pauseAuto} onMouseLeave={resumeAuto}>
         <div className="min-h-[96px]">
           <blockquote key={index} className="text-white/85 text-sm sm:text-base leading-relaxed transition-opacity duration-300">"{t.quote}"</blockquote>
-          <div className="mt-4 text-xs sm:text-sm text-white/60">{t.author}</div>
+          <div className="mt-4 text-xs sm:text-sm text-white/60">
+            {t.author}
+            {t.position && ` — ${t.position}`}
+          </div>
         </div>
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {testimonialsData.testimonials.map((_, i) => (
+            {approvedTestimonials.map((_, i) => (
               <button
                 key={i}
                 aria-label={`Go to testimonial ${i + 1}`}

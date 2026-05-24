@@ -44,6 +44,17 @@
   --tile-line-light: rgba(255, 255, 255, 0.5);
 }
 
+.theme-spiderman {
+  --background: #030407;
+  --foreground: #f1f5f9;
+  --accent: #ef4444; /* Spidey Red */
+  --cr-blue: #1d4ed8; /* Spidey Blue */
+  --cr-navy: #040814; /* Deep midnight navy */
+  --cr-purple: #f43f5e; /* Web Shooter rose-pink */
+  --tile-line-dark: rgba(239, 68, 68, 0.15); /* Red tinted lines */
+  --tile-line-light: rgba(59, 130, 246, 0.12); /* Blue tinted lines */
+}
+
 /* Clash Royale display fonts */
 @font-face {
   font-family: "Clash";
@@ -108,6 +119,43 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body.theme-spiderman {
+  /* Dynamic Concentric Web Rings and Conic-Gradient Web Spokes centered behind content! */
+  background:
+    /* Spidey Red and Blue highlight ambient glows */
+    radial-gradient(1200px 600px at 15% -10%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(1000px 500px at 85% -20%, color-mix(in oklab, var(--cr-blue) 18%, transparent), transparent 55%),
+    
+    /* Concentric Web Rings using radial gradients at viewport center */
+    radial-gradient(circle at 50% 50%, transparent 40px, rgba(255, 255, 255, 0.04) 40px, rgba(255, 255, 255, 0.04) 41.5px, transparent 41.5px),
+    radial-gradient(circle at 50% 50%, transparent 90px, rgba(255, 255, 255, 0.04) 90px, rgba(255, 255, 255, 0.04) 91.5px, transparent 91.5px),
+    radial-gradient(circle at 50% 50%, transparent 160px, rgba(255, 255, 255, 0.04) 160px, rgba(255, 255, 255, 0.04) 161.5px, transparent 161.5px),
+    radial-gradient(circle at 50% 50%, transparent 250px, rgba(255, 255, 255, 0.04) 250px, rgba(255, 255, 255, 0.04) 252px, transparent 252px),
+    radial-gradient(circle at 50% 50%, transparent 360px, rgba(255, 255, 255, 0.04) 360px, rgba(255, 255, 255, 0.04) 362px, transparent 362px),
+    radial-gradient(circle at 50% 50%, transparent 490px, rgba(255, 255, 255, 0.04) 490px, rgba(255, 255, 255, 0.04) 492px, transparent 492px),
+    radial-gradient(circle at 50% 50%, transparent 640px, rgba(255, 255, 255, 0.03) 640px, rgba(255, 255, 255, 0.03) 642px, transparent 642px),
+    
+    /* Conic Web Spokes radiating from center (every 30 degrees) */
+    conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg, rgba(255,255,255,0.035) 0.5deg, rgba(255,255,255,0.035) 1.5deg, transparent 2deg,
+      transparent 28deg, rgba(255,255,255,0.035) 29.5deg, rgba(255,255,255,0.035) 30.5deg, transparent 32deg,
+      transparent 58deg, rgba(255,255,255,0.035) 59.5deg, rgba(255,255,255,0.035) 60.5deg, transparent 62deg,
+      transparent 88deg, rgba(255,255,255,0.035) 89.5deg, rgba(255,255,255,0.035) 90.5deg, transparent 92deg,
+      transparent 118deg, rgba(255,255,255,0.035) 119.5deg, rgba(255,255,255,0.035) 120.5deg, transparent 122deg,
+      transparent 148deg, rgba(255,255,255,0.035) 149.5deg, rgba(255,255,255,0.035) 150.5deg, transparent 152deg,
+      transparent 178deg, rgba(255,255,255,0.035) 179.5deg, rgba(255,255,255,0.035) 180.5deg, transparent 182deg,
+      transparent 208deg, rgba(255,255,255,0.035) 209.5deg, rgba(255,255,255,0.035) 210.5deg, transparent 212deg,
+      transparent 238deg, rgba(255,255,255,0.035) 239.5deg, rgba(255,255,255,0.035) 240.5deg, transparent 242deg,
+      transparent 268deg, rgba(255,255,255,0.035) 269.5deg, rgba(255,255,255,0.035) 270.5deg, transparent 272deg,
+      transparent 298deg, rgba(255,255,255,0.035) 299.5deg, rgba(255,255,255,0.035) 300.5deg, transparent 302deg,
+      transparent 328deg, rgba(255,255,255,0.035) 329.5deg, rgba(255,255,255,0.035) 330.5deg, transparent 332deg,
+      transparent 358deg, rgba(255,255,255,0.035) 359.5deg, rgba(255,255,255,0.035) 360deg
+    ),
+    
+    /* Base Spidey midnight navy background gradient */
+    linear-gradient(180deg, color-mix(in oklab, var(--cr-navy) 90%, black 10%), color-mix(in oklab, var(--cr-blue) 12%, var(--cr-navy) 88%));
 }
 
 ::selection {
@@ -511,3 +559,208 @@ body {
   transition: opacity 180ms ease;
 }
 .cr-glass-hover:hover::after { opacity: 1; }
+
+/* ==========================================================================
+   STUNNING SPIDER-MAN IMMERSIVE ACCENTS & VISUAL OVERRIDES
+   ========================================================================== */
+
+/* Concentric radial web watermarks in top-right corners of all standard cards */
+body.theme-spiderman div.rounded-2xl:not(.p-0) {
+  position: relative;
+  overflow: hidden;
+}
+body.theme-spiderman div.rounded-2xl:not(.p-0)::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 50px;
+  height: 50px;
+  background-image: 
+    /* Web diagonal spokes */
+    linear-gradient(45deg, transparent 46%, rgba(239, 68, 68, 0.22) 48%, rgba(239, 68, 68, 0.22) 52%, transparent 54%),
+    /* Web concentric rings */
+    radial-gradient(circle at 100% 0%, transparent 12px, rgba(239, 68, 68, 0.18) 12px, rgba(239, 68, 68, 0.18) 13px, transparent 13px),
+    radial-gradient(circle at 100% 0%, transparent 24px, rgba(239, 68, 68, 0.18) 24px, rgba(239, 68, 68, 0.18) 25px, transparent 25px),
+    radial-gradient(circle at 100% 0%, transparent 36px, rgba(239, 68, 68, 0.18) 36px, rgba(239, 68, 68, 0.18) 37px, transparent 37px);
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Spider-Man Suit Fabric Texture with Web Overlay for the Legendary Card Reveal */
+body.theme-spiderman .cr-legend-reveal {
+  background: 
+    /* Hexagonal Suit Texture Grid */
+    radial-gradient(circle, rgba(0,0,0,0.18) 24%, transparent 26%),
+    /* Subtle Red Suit Gradient Base */
+    linear-gradient(180deg, #ef4444 0%, #b91c1c 65%, #7f1d1d 100%) !important;
+  background-size: 8px 8px, 100% 100% !important;
+  box-shadow: 
+    0 0 0 3px #000, 
+    0 0 0 8px #ef4444, 
+    0 0 32px 10px rgba(239, 68, 68, 0.35),
+    inset 0 2px 0 rgba(255,255,255,0.35), 
+    inset 0 -3px 0 rgba(0,0,0,0.55), 
+    0 28px 70px rgba(0,0,0,0.7) !important;
+}
+
+/* Precise Spiderweb lines drawn inside the legendary Spidey Reveal card */
+body.theme-spiderman .cr-legend-reveal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    /* Spiderweb concentric rings from center of card */
+    radial-gradient(circle at 50% 50%, transparent 30px, rgba(0,0,0,0.22) 30px, rgba(0,0,0,0.22) 31.5px, transparent 31.5px),
+    radial-gradient(circle at 50% 50%, transparent 65px, rgba(0,0,0,0.22) 65px, rgba(0,0,0,0.22) 66.5px, transparent 66.5px),
+    radial-gradient(circle at 50% 50%, transparent 110px, rgba(0,0,0,0.22) 110px, rgba(0,0,0,0.22) 111.5px, transparent 111.5px),
+    radial-gradient(circle at 50% 50%, transparent 160px, rgba(0,0,0,0.22) 160px, rgba(0,0,0,0.22) 161.5px, transparent 161.5px),
+    /* Web spokes radiating from center */
+    conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg, rgba(0,0,0,0.18) 0.5deg, rgba(0,0,0,0.18) 1.5deg, transparent 2deg,
+      transparent 43deg, rgba(0,0,0,0.18) 44.5deg, rgba(0,0,0,0.18) 45.5deg, transparent 47deg,
+      transparent 88deg, rgba(0,0,0,0.18) 89.5deg, rgba(0,0,0,0.18) 90.5deg, transparent 92deg,
+      transparent 133deg, rgba(0,0,0,0.18) 134.5deg, rgba(0,0,0,0.18) 135.5deg, transparent 137deg,
+      transparent 178deg, rgba(0,0,0,0.18) 179.5deg, rgba(0,0,0,0.18) 180.5deg, transparent 182deg,
+      transparent 223deg, rgba(0,0,0,0.18) 224.5deg, rgba(0,0,0,0.18) 225.5deg, transparent 227deg,
+      transparent 268deg, rgba(0,0,0,0.18) 269.5deg, rgba(0,0,0,0.18) 270.5deg, transparent 272deg,
+      transparent 313deg, rgba(0,0,0,0.18) 314.5deg, rgba(0,0,0,0.18) 315.5deg, transparent 317deg,
+      transparent 358deg, rgba(0,0,0,0.18) 359.5deg, rgba(0,0,0,0.18) 360deg
+    ) !important;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 1;
+}
+
+/* Glowing electric red/blue outline scan for Legendary Reveal card in Spidey mode */
+body.theme-spiderman .cr-edge-scan {
+  background: conic-gradient(from 0deg, rgba(239,68,68,0) 0deg, rgba(239,68,68,0.8) 28deg, rgba(239,68,68,0) 60deg, rgba(59,130,246,0.7) 120deg, rgba(239,68,68,0) 160deg) !important;
+}
+
+/* Orbiting dots in Spidey theme flare with electric blue and white glows */
+body.theme-spiderman .cr-orbit .dot {
+  background: radial-gradient(circle, #ffffff 0%, rgba(59,130,246,0.9) 65%, rgba(59,130,246,0) 80%) !important;
+  filter: blur(0.4px) drop-shadow(0 0 6px rgba(59,130,246,0.9)) !important;
+}
+
+/* Shockwave for Spidey theme should explode in bright crimson red and blue */
+body.theme-spiderman .cr-shockwave {
+  border: 2px solid rgba(239, 68, 68, 0.7) !important;
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.6), inset 0 0 12px rgba(255, 255, 255, 0.35) !important;
+}
+
+/* ==========================================================================
+   SPIDER-MAN PHOTO PREVIEW MODALS, CONTACT ACCENTS & SOCIAL BADGES
+   ========================================================================== */
+
+/* 1. Contact Section Slab Header */
+body.theme-spiderman div.rounded-2xl div.text-black.font-extrabold {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.6), rgba(29, 78, 216, 0.4)) !important;
+  color: #ffffff !important;
+  text-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Contact Action Buttons (Email, Phone) */
+body.theme-spiderman div.rounded-2xl a.text-black.font-extrabold {
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 6px 10px -10px rgba(0, 0, 0, 0.6) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+body.theme-spiderman div.rounded-2xl a.text-black.font-extrabold svg path {
+  fill: #ffffff !important;
+}
+
+/* 2. Glowing Social Link Badges */
+body.theme-spiderman div.flex.items-center.gap-3 a.cr-glass-hover {
+  background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.35), 
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(239, 68, 68, 0.3) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+body.theme-spiderman div.flex.items-center.gap-3 a.cr-glass-hover:hover {
+  transform: translateY(-4px) scale(1.08) !important;
+  border-color: #ffffff !important;
+  box-shadow: 
+    0 0 20px rgba(239, 68, 68, 0.75), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.45), 
+    inset 0 -2px 0 rgba(0, 0, 0, 0.45) !important;
+}
+
+/* 3. High-Tech Photo Preview & Achievements Modals */
+body.theme-spiderman div[role="dialog"] > div.relative[style*="scale"] {
+  background: 
+    /* Hexagonal Canvas Suit grid texture */
+    radial-gradient(circle, rgba(0, 0, 0, 0.15) 24%, transparent 26%),
+    linear-gradient(180deg, #040814 0%, #1e293b 100%) !important;
+  background-size: 8px 8px, 100% 100% !important;
+  border: 2px solid #ef4444 !important;
+  box-shadow: 
+    0 0 0 1px #000000,
+    0 0 28px rgba(239, 68, 68, 0.45),
+    0 28px 60px -24px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Embedded radial/conic waterweb overlay inside Spidey dialog wrappers */
+body.theme-spiderman div[role="dialog"] > div.relative[style*="scale"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    /* radial rings */
+    radial-gradient(circle at 50% 50%, transparent 40px, rgba(239, 68, 68, 0.06) 40px, rgba(239, 68, 68, 0.06) 42px, transparent 42px),
+    radial-gradient(circle at 50% 50%, transparent 100px, rgba(239, 68, 68, 0.05) 100px, rgba(239, 68, 68, 0.05) 102px, transparent 102px),
+    radial-gradient(circle at 50% 50%, transparent 180px, rgba(239, 68, 68, 0.04) 180px, rgba(239, 68, 68, 0.04) 182px, transparent 182px),
+    /* conic spokes */
+    conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg, rgba(239, 68, 68, 0.05) 0.5deg, rgba(239, 68, 68, 0.05) 1.5deg, transparent 2deg,
+      transparent 88deg, rgba(239, 68, 68, 0.05) 89.5deg, rgba(239, 68, 68, 0.05) 90.5deg, transparent 92deg,
+      transparent 178deg, rgba(239, 68, 68, 0.05) 179.5deg, rgba(239, 68, 68, 0.05) 180.5deg, transparent 182deg,
+      transparent 268deg, rgba(239, 68, 68, 0.05) 269.5deg, rgba(239, 68, 68, 0.05) 270.5deg, transparent 272deg
+    ) !important;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+}
+
+/* Modal header overlay */
+body.theme-spiderman div[role="dialog"] div.relative.flex.items-center {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Modal Title Text (outlined neon look) */
+body.theme-spiderman div[role="dialog"] div.font-extrabold.tracking-wide {
+  color: #ffffff !important;
+  text-shadow: 
+    0 0 8px rgba(255, 255, 255, 0.35),
+    -1px -1px 0 #ef4444, 1px -1px 0 #ef4444, -1px 1px 0 #ef4444, 1px 1px 0 #ef4444 !important;
+}
+
+/* Modal Close button (rotating web shooter) */
+body.theme-spiderman div[role="dialog"] button[aria-label="Close"] {
+  background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 0 10px rgba(239, 68, 68, 0.45) !important;
+  border: 1px solid #000000 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+body.theme-spiderman div[role="dialog"] button[aria-label="Close"]:hover {
+  transform: translateY(-50%) scale(1.15) rotate(90deg) !important;
+  background: linear-gradient(180deg, #ff6b6b 0%, #dc2626 100%) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), 0 0 16px rgba(239, 68, 68, 0.8) !important;
+}
+
+/* Picture content backing plate frame */
+body.theme-spiderman div[role="dialog"] div.overflow-auto {
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.95) !important;
+}
+
+
+

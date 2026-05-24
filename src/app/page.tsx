@@ -9,10 +9,12 @@ import Network from "@/components/sections/Network";
 import Footer from "@/components/sections/Footer";
 import RightColumn from "@/components/containers/RightColumn";
 import ViewTracker from "@/components/ViewTracker";
+import ThemeSelectorOverlay from "@/components/ui/ThemeSelectorOverlay";
 
 export default function Home() {
   return (
     <>
+      <ThemeSelectorOverlay />
       <ViewTracker />
       <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
@@ -31,3 +33,4 @@ export default function Home() {
     </>
   );
 }
+

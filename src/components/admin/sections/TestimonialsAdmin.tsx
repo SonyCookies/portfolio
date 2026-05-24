@@ -1,25 +1,36 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import Card from "@/components/ui/Card";
-import { getTestimonialsData, saveTestimonialsData, type TestimonialsData, type Testimonial } from "@/lib/testimonials-data";
+import { getTestimonialsData, saveTestimonialsData, type TestimonialsData, type Testimonial, type InviteToken } from "@/lib/testimonials-data";
 import { showToast, updateToast, removeToast } from "@/components/ui/Toast";
 
 export default function TestimonialsAdmin() {
-  const [testimonialsData, setTestimonialsData] = useState<TestimonialsData>({ testimonials: [] });
+  const [testimonialsData, setTestimonialsData] = useState<TestimonialsData>({ testimonials: [], inviteTokens: [] });
   const [loading, setLoading] = useState(true);
+  
+  // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [editScale, setEditScale] = useState(0.96);
   const editTimerRef = useRef<number | null>(null);
+  
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteModalScale, setDeleteModalScale] = useState(0.96);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const deleteTimerRef = useRef<number | null>(null);
+
+  // Tab state: "published" | "pending" | "invites"
+  const [activeTab, setActiveTab] = useState<"published" | "pending" | "invites">("published");
+  
+  // Rearrange states
   const [isRearrangeMode, setIsRearrangeMode] = useState(false);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
-  // Form state for editing
-  const [formData, setFormData] = useState<TestimonialsData>(testimonialsData);
+  // Form states
+  const [formData, setFormData] = useState<TestimonialsData>({ testimonials: [], inviteTokens: [] });
+  const [recipientName, setRecipientName] = useState("");
+  const [generatedLink, setGeneratedLink] = useState("");
 
   // Load testimonials data from Firebase on mount
   useEffect(() => {
@@ -30,6 +41,7 @@ export default function TestimonialsAdmin() {
         const data = await getTestimonialsData();
         console.log("[TestimonialsAdmin] Data loaded:", {
           testimonialsCount: data.testimonials?.length || 0,
+          inviteTokensCount: data.inviteTokens?.length || 0,
         });
         setTestimonialsData(data);
         setFormData(data);
@@ -88,12 +100,13 @@ export default function TestimonialsAdmin() {
     if (showEditModal) {
       setFormData(testimonialsData);
       setIsRearrangeMode(false);
+      setRecipientName("");
+      setGeneratedLink("");
     }
   }, [showEditModal, testimonialsData]);
 
   const handleSave = async () => {
     setShowEditModal(false);
-    
     const toastId = showToast("Saving changes...", "loading", 0);
 
     try {
@@ -124,9 +137,12 @@ export default function TestimonialsAdmin() {
 
   const handleAddTestimonial = () => {
     const newTestimonial: Testimonial = {
-      id: `testimonial-${Date.now()}`,
+      id: `testimonial-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       quote: "",
       author: "",
+      position: "",
+      approved: true, // Manual admin additions are approved immediately
+      createdAt: Date.now(),
     };
     setFormData({
       ...formData,
@@ -134,7 +150,7 @@ export default function TestimonialsAdmin() {
     });
   };
 
-  const handleTestimonialChange = (id: string, field: keyof Testimonial, value: string) => {
+  const handleTestimonialChange = (id: string, field: keyof Testimonial, value: string | boolean) => {
     setFormData({
       ...formData,
       testimonials: formData.testimonials.map((t) =>
@@ -160,7 +176,55 @@ export default function TestimonialsAdmin() {
     setDeleteId(null);
   };
 
-  // Drag and drop handlers
+  // 1. Approve Pending Testimonial
+  const handleApprove = (id: string) => {
+    setFormData({
+      ...formData,
+      testimonials: formData.testimonials.map((t) =>
+        t.id === id ? { ...t, approved: true } : t
+      ),
+    });
+    showToast("Testimonial approved! Don't forget to click 'Save Changes' to publish.", "success");
+  };
+
+  // 2. Generate Invite Token Link
+  const handleGenerateLink = () => {
+    if (!recipientName.trim()) {
+      showToast("Please enter a recipient name first", "error");
+      return;
+    }
+
+    const tokenString = `token-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const newToken: InviteToken = {
+      token: tokenString,
+      recipientName: recipientName.trim(),
+      createdAt: Date.now(),
+      used: false,
+    };
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const inviteUrl = `${origin}/recommendation?token=${tokenString}`;
+    
+    setGeneratedLink(inviteUrl);
+    setFormData({
+      ...formData,
+      inviteTokens: [newToken, ...(formData.inviteTokens || [])],
+    });
+
+    setRecipientName("");
+    showToast("Invite Link generated successfully! Click 'Save Changes' to activate it.", "success");
+  };
+
+  // 3. Delete/Revoke Invite Token
+  const handleRevokeToken = (token: string) => {
+    setFormData({
+      ...formData,
+      inviteTokens: (formData.inviteTokens || []).filter((t) => t.token !== token),
+    });
+    showToast("Invitation link revoked successfully!", "success");
+  };
+
+  // Drag and drop handlers for published testimonials
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedItemId(id);
     e.dataTransfer.effectAllowed = "move";
@@ -216,13 +280,7 @@ export default function TestimonialsAdmin() {
   if (loading) {
     return (
       <div className="col-span-full lg:col-span-6 relative">
-        {/* Edit Button Skeleton */}
-        <div
-          className="absolute -top-2 -right-2 z-30 p-2 rounded-lg bg-yellow-400/50 animate-pulse"
-          style={{
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-        >
+        <div className="absolute -top-2 -right-2 z-30 p-2 rounded-lg bg-yellow-400/50 animate-pulse">
           <div className="w-5 h-5 bg-gray-900/20 rounded" />
         </div>
         <Card
@@ -247,15 +305,20 @@ export default function TestimonialsAdmin() {
     );
   }
 
+  // Filter lists based on approval status
+  const approvedTestimonials = formData.testimonials.filter((t) => t.approved !== false);
+  const pendingTestimonials = formData.testimonials.filter((t) => t.approved === false);
+  const activeInviteTokens = formData.inviteTokens || [];
+
   return (
     <>
       <div className="col-span-full lg:col-span-6 relative">
         {/* Edit Button */}
         <button
           onClick={() => setShowEditModal(true)}
-          className="absolute -top-2 -right-2 z-30 p-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-900 shadow-lg transition-colors"
-          title="Edit Testimonials Section"
-          aria-label="Edit Testimonials Section"
+          className="absolute -top-2 -right-2 z-30 p-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-900 shadow-lg transition-colors cursor-pointer"
+          title="Manage Testimonial Adder & Approvals"
+          aria-label="Manage Testimonial Adder & Approvals"
           style={{
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           }}
@@ -265,7 +328,8 @@ export default function TestimonialsAdmin() {
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        {/* Testimonials Component UI */}
+
+        {/* Display Visitor UI preview in Admin */}
         <Card
           title={
             <>
@@ -273,30 +337,35 @@ export default function TestimonialsAdmin() {
                 <path d="M6 6h12v12H6z" stroke="currentColor" strokeWidth="2"/>
                 <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <span>Testimonials</span>
+              <span>Testimonials Preview</span>
             </>
           }
           className="col-span-full lg:col-span-6"
         >
           <div className="min-h-[96px]">
-            {testimonialsData.testimonials.length > 0 ? (
+            {testimonialsData.testimonials.filter(t => t.approved !== false).length > 0 ? (
               <>
-                <blockquote className="text-white/85 leading-relaxed">"{testimonialsData.testimonials[0].quote}"</blockquote>
-                <div className="mt-4 text-xs sm:text-sm text-white/60">{testimonialsData.testimonials[0].author}</div>
+                <blockquote className="text-white/85 leading-relaxed">
+                  &quot;{testimonialsData.testimonials.filter(t => t.approved !== false)[0].quote}&quot;
+                </blockquote>
+                <div className="mt-4 text-xs sm:text-sm text-white/60">
+                  {testimonialsData.testimonials.filter(t => t.approved !== false)[0].author}
+                  {testimonialsData.testimonials.filter(t => t.approved !== false)[0].position && ` — ${testimonialsData.testimonials.filter(t => t.approved !== false)[0].position}`}
+                </div>
               </>
             ) : (
-              <div className="text-white/60 text-sm">No testimonials available</div>
+              <div className="text-white/60 text-sm">No published testimonials available</div>
             )}
           </div>
         </Card>
       </div>
 
-      {/* Edit Modal */}
+      {/* Main Testimonial Adder & Approvals Manager Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-[200] grid place-items-center p-1 sm:p-4" role="dialog" aria-modal="true" aria-label="Edit Testimonials Section">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancel} />
           <div 
-            className="relative z-[201] w-full max-w-[98vw] sm:max-w-[900px] lg:max-w-[1000px] h-[98vh] sm:h-auto sm:max-h-[95vh] rounded-[12px] sm:rounded-[24px] overflow-hidden flex flex-col"
+            className="relative z-[201] w-full max-w-[98vw] sm:max-w-[900px] lg:max-w-[1050px] h-[96vh] sm:h-auto sm:max-h-[92vh] rounded-[12px] sm:rounded-[24px] overflow-hidden flex flex-col"
             style={{
               background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
               boxShadow: "0 28px 60px -24px rgba(0,0,0,0.85), 0 1px 0 rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.15)",
@@ -304,7 +373,7 @@ export default function TestimonialsAdmin() {
               transition: "transform 180ms cubic-bezier(.2,.9,.25,1)",
             }}
           >
-            {/* Header */}
+            {/* Modal Header */}
             <div className="relative flex items-center px-3 py-2.5 sm:px-6 sm:py-6 flex-shrink-0" style={{
               background: "linear-gradient(180deg, #808a99 0%, #6b7586 100%)",
             }}>
@@ -312,12 +381,12 @@ export default function TestimonialsAdmin() {
                 textTransform: "uppercase",
                 textShadow: "0 3px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.45), -1px -1px 0 #1c2744, 1px -1px 0 #1c2744, -1px 1px 0 #1c2744, 1px 1px 0 #1c2744",
                 letterSpacing: 1,
-              }}>Edit Testimonials</div>
+              }}>Testimonials & Invite Links Manager</div>
               <button 
                 type="button" 
                 onClick={handleCancel} 
                 aria-label="Close" 
-                className="grid place-items-center z-10"
+                className="grid place-items-center z-10 cursor-pointer"
                 style={{
                   position: "absolute",
                   right: 6,
@@ -331,192 +400,452 @@ export default function TestimonialsAdmin() {
                   border: "1px solid rgba(0,0,0,0.45)",
                 }}
               >
-                <span className="sr-only">Close</span>
                 <span className="text-white font-extrabold text-xs" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
               </button>
             </div>
 
-            {/* Inner content container area */}
+            {/* Modal Tabs Header */}
+            <div className="flex border-b border-white/10 px-4 sm:px-6 bg-slate-700/30 flex-shrink-0 text-xs sm:text-sm">
+              <button
+                type="button"
+                onClick={() => { setActiveTab("published"); setIsRearrangeMode(false); }}
+                className={`py-3 px-4 font-black tracking-wider uppercase border-b-2 transition-all ${
+                  activeTab === "published"
+                    ? "border-yellow-400 text-yellow-400"
+                    : "border-transparent text-white/60 hover:text-white"
+                }`}
+              >
+                Published ({approvedTestimonials.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab("pending"); setIsRearrangeMode(false); }}
+                className={`py-3 px-4 font-black tracking-wider uppercase border-b-2 transition-all flex items-center gap-1.5 ${
+                  activeTab === "pending"
+                    ? "border-yellow-400 text-yellow-400"
+                    : "border-transparent text-white/60 hover:text-white"
+                }`}
+              >
+                <span>Pending Queue</span>
+                {pendingTestimonials.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white font-bold text-[9px] sm:text-[10px] animate-pulse">
+                    {pendingTestimonials.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab("invites"); setIsRearrangeMode(false); }}
+                className={`py-3 px-4 font-black tracking-wider uppercase border-b-2 transition-all ${
+                  activeTab === "invites"
+                    ? "border-yellow-400 text-yellow-400"
+                    : "border-transparent text-white/60 hover:text-white"
+                }`}
+              >
+                Invite Links
+              </button>
+            </div>
+
+            {/* Inner Content Area */}
             <div className="px-2 sm:px-4 pb-3 sm:pb-6 pt-1 sm:pt-2 flex-1 flex flex-col min-h-0 overflow-y-auto" style={{
               background: "linear-gradient(360deg, #808a99 0%, #6b7586 100%)"
             }}>
-              {/* Content panel wrapper */}
-              <div className="mt-2 sm:mt-4 rounded-xl flex-1 min-h-0 overflow-y-auto" style={{
-                background: "linear-gradient(180deg, #f8fbff 0%, #ecf3ff 100%)",
+              {/* Content Panel */}
+              <div className="mt-2 sm:mt-4 rounded-xl flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-[#f8fbff] to-[#ecf3ff]" style={{
                 border: "1px solid rgba(0,0,0,0.12)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
-                padding: "8px",
+                padding: "12px",
               }}>
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Rearrange Button */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsRearrangeMode(!isRearrangeMode)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
-                        style={{
-                          border: "1px solid color-mix(in oklab, var(--accent) 35%, white 10%)",
-                          background: isRearrangeMode
-                            ? "linear-gradient(180deg, color-mix(in oklab, var(--accent) 92%, white 6%), color-mix(in oklab, var(--accent) 70%, #b68b1a 30%))"
-                            : "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                          <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span>{isRearrangeMode ? "Done Rearranging" : "Rearrange"}</span>
-                      </button>
-                    </div>
-                    {!isRearrangeMode && (
-                      <button
-                        type="button"
-                        onClick={handleAddTestimonial}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-white active:translate-y-0.5 transition cr-glass-hover w-full sm:w-auto"
-                        style={{
-                          border: "1px solid color-mix(in oklab, #10b981 35%, white 10%)",
-                          background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
-                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span>Add Testimonial</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Testimonials List */}
-                  <div className="space-y-3 sm:space-y-4">
-                    {formData.testimonials.map((testimonial, index) => (
-                      <div
-                        key={testimonial.id}
-                        draggable={isRearrangeMode}
-                        onDragStart={(e) => handleDragStart(e, testimonial.id)}
-                        onDragOver={(e) => handleDragOver(e, testimonial.id)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, testimonial.id)}
-                        onDragEnd={handleDragEnd}
-                        className={`rounded-lg p-2.5 sm:p-4 border border-[#233457]/20 bg-white/50 relative ${
-                          isRearrangeMode ? "cursor-move" : ""
-                        } ${
-                          draggedItemId === testimonial.id ? "opacity-50" : ""
-                        } ${
-                          dragOverItemId === testimonial.id ? "border-[#5ea0ff] border-2" : ""
-                        }`}
-                      >
-                        {isRearrangeMode ? (
-                          <>
-                            {/* Rearrange Mode - Collapsed View */}
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2 text-[#233457]/60">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                  <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                <span className="text-xs font-semibold">#{index + 1}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs sm:text-sm font-semibold text-[#233457] truncate">{testimonial.quote.substring(0, 50) || "Untitled Testimonial"}...</div>
-                                <div className="text-[10px] sm:text-xs text-[#233457]/60">{testimonial.author || "No author"}</div>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* Normal Mode - Full Edit Form */}
-                            {/* Delete Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteTestimonial(testimonial.id)}
-                              className="absolute top-2 right-2 p-1.5 rounded-md text-white hover:bg-red-600 transition-colors"
-                              style={{
-                                background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
-                                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2)",
-                              }}
-                              aria-label="Delete testimonial"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </button>
-
-                            {/* Quote */}
-                            <div className="mb-3 sm:mb-4 pr-10">
-                              <label className="block text-xs font-semibold text-[#233457] mb-1.5">
-                                Quote
-                              </label>
-                              <textarea
-                                value={testimonial.quote}
-                                onChange={(e) => handleTestimonialChange(testimonial.id, "quote", e.target.value)}
-                                className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                                placeholder="Testimonial quote"
-                                rows={4}
-                                style={{ resize: "vertical" }}
-                              />
-                            </div>
-
-                            {/* Author */}
-                            <div className="mb-3 sm:mb-4">
-                              <label className="block text-xs font-semibold text-[#233457] mb-1.5">
-                                Author
-                              </label>
-                              <input
-                                type="text"
-                                value={testimonial.author}
-                                onChange={(e) => handleTestimonialChange(testimonial.id, "author", e.target.value)}
-                                className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent"
-                                placeholder="— at"
-                              />
-                            </div>
-                          </>
+                <div className="space-y-4">
+                  
+                  {/* ==================== TAB 1: PUBLISHED TESTIMONIALS ==================== */}
+                  {activeTab === "published" && (
+                    <>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsRearrangeMode(!isRearrangeMode)}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-white active:translate-y-0.5 transition cr-glass-hover"
+                            style={{
+                              border: "1px solid color-mix(in oklab, var(--accent) 35%, white 10%)",
+                              background: isRearrangeMode
+                                ? "linear-gradient(180deg, color-mix(in oklab, var(--accent) 92%, white 6%), color-mix(in oklab, var(--accent) 70%, #b68b1a 30%))"
+                                : "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                              <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span>{isRearrangeMode ? "Done Rearranging" : "Rearrange"}</span>
+                          </button>
+                        </div>
+                        {!isRearrangeMode && (
+                          <button
+                            type="button"
+                            onClick={handleAddTestimonial}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-white active:translate-y-0.5 transition cr-glass-hover w-full sm:w-auto"
+                            style={{
+                              border: "1px solid color-mix(in oklab, #10b981 35%, white 10%)",
+                              background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span>Add Testimonial</span>
+                          </button>
                         )}
                       </div>
-                    ))}
-                    {(!formData.testimonials || formData.testimonials.length === 0) && (
-                      <div className="text-center py-8 text-[#233457]/60 text-xs sm:text-sm">
-                        No testimonials yet. Click &quot;Add Testimonial&quot; to add one.
+
+                      <div className="space-y-3 sm:space-y-4">
+                        {approvedTestimonials.map((testimonial, index) => (
+                          <div
+                            key={testimonial.id}
+                            draggable={isRearrangeMode}
+                            onDragStart={(e) => handleDragStart(e, testimonial.id)}
+                            onDragOver={(e) => handleDragOver(e, testimonial.id)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, testimonial.id)}
+                            onDragEnd={handleDragEnd}
+                            className={`rounded-lg p-3 sm:p-4 border border-[#233457]/20 bg-white/50 relative ${
+                              isRearrangeMode ? "cursor-move" : ""
+                            } ${
+                              draggedItemId === testimonial.id ? "opacity-50" : ""
+                            } ${
+                              dragOverItemId === testimonial.id ? "border-[#5ea0ff] border-2" : ""
+                            }`}
+                          >
+                            {isRearrangeMode ? (
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 text-[#233457]/60">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                    <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  <span className="text-xs font-semibold">#{index + 1}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs sm:text-sm font-semibold text-[#233457] truncate">&quot;{testimonial.quote.substring(0, 80)}...&quot;</div>
+                                  <div className="text-[10px] sm:text-xs text-[#233457]/60">
+                                    {testimonial.author} {testimonial.position && `— ${testimonial.position}`}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Delete Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTestimonial(testimonial.id)}
+                                  className="absolute top-2 right-2 p-1.5 rounded-md text-white hover:bg-red-600 transition-colors cursor-pointer"
+                                  style={{
+                                    background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2)",
+                                  }}
+                                  aria-label="Delete testimonial"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+
+                                {/* Form grid */}
+                                <div className="grid gap-3 sm:gap-4 pr-8 text-xs sm:text-sm">
+                                  <div>
+                                    <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Quote</label>
+                                    <textarea
+                                      value={testimonial.quote}
+                                      onChange={(e) => handleTestimonialChange(testimonial.id, "quote", e.target.value)}
+                                      className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent transition-all"
+                                      placeholder="Testimonial quote text..."
+                                      rows={3}
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Author Name</label>
+                                      <input
+                                        type="text"
+                                        value={testimonial.author}
+                                        onChange={(e) => handleTestimonialChange(testimonial.id, "author", e.target.value)}
+                                        className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent transition-all"
+                                        placeholder="e.g. Jane Doe"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Position / Company</label>
+                                      <input
+                                        type="text"
+                                        value={testimonial.position || ""}
+                                        onChange={(e) => handleTestimonialChange(testimonial.id, "position", e.target.value)}
+                                        className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent transition-all"
+                                        placeholder="e.g. Senior PM at Google"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                        {approvedTestimonials.length === 0 && (
+                          <div className="text-center py-8 text-[#233457]/60 text-xs sm:text-sm">
+                            No published testimonials yet. Click &quot;Add Testimonial&quot; to write one manually.
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
+
+                  {/* ==================== TAB 2: PENDING APPROVAL QUEUE ==================== */}
+                  {activeTab === "pending" && (
+                    <div className="space-y-4">
+                      <div className="text-xs text-[#233457]/70 font-semibold mb-2">
+                        These recommendations were submitted via invite links and are awaiting your review before publishing to the site.
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {pendingTestimonials.map((testimonial) => (
+                          <div
+                            key={testimonial.id}
+                            className="rounded-lg p-4 border border-yellow-500/30 bg-yellow-400/5 relative"
+                          >
+                            {/* Review Action Buttons */}
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5 text-white">
+                              {/* Approve Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleApprove(testimonial.id)}
+                                className="p-1.5 rounded-md hover:bg-emerald-600 transition-colors cursor-pointer"
+                                style={{
+                                  background: "linear-gradient(180deg, #10b981 0%, #059669 60%, #047857 100%)",
+                                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2)",
+                                }}
+                                title="Approve & Publish to Landing Page"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 5 12" />
+                                </svg>
+                              </button>
+                              {/* Reject/Delete Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTestimonial(testimonial.id)}
+                                className="p-1.5 rounded-md hover:bg-red-600 transition-colors cursor-pointer"
+                                style={{
+                                  background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 55%, #b73838 100%)",
+                                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2)",
+                                }}
+                                title="Reject & Delete"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18" />
+                                  <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                              </button>
+                            </div>
+
+                            {/* Pending Quote Form */}
+                            <div className="grid gap-3 sm:gap-4 pr-16 text-xs sm:text-sm">
+                              <div>
+                                <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Submitted Quote</label>
+                                <textarea
+                                  value={testimonial.quote}
+                                  onChange={(e) => handleTestimonialChange(testimonial.id, "quote", e.target.value)}
+                                  className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent transition-all"
+                                  rows={3}
+                                />
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Author</label>
+                                  <input
+                                    type="text"
+                                    value={testimonial.author}
+                                    onChange={(e) => handleTestimonialChange(testimonial.id, "author", e.target.value)}
+                                    className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-black text-[#233457] mb-1 uppercase tracking-wider">Position</label>
+                                  <input
+                                    type="text"
+                                    value={testimonial.position || ""}
+                                    onChange={(e) => handleTestimonialChange(testimonial.id, "position", e.target.value)}
+                                    className="w-full px-2.5 sm:px-3 py-2 rounded-md text-xs text-[#233457] bg-white border border-[#233457]/20 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {pendingTestimonials.length === 0 && (
+                          <div className="text-center py-10 text-[#233457]/60 text-xs sm:text-sm">
+                            🎉 No pending recommendations in the queue!
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ==================== TAB 3: INVITE LINK GENERATOR ==================== */}
+                  {activeTab === "invites" && (
+                    <div className="space-y-5 text-xs sm:text-sm text-[#233457]">
+                      
+                      {/* Invite Form */}
+                      <div className="rounded-lg p-4 border border-[#233457]/20 bg-white/40 flex flex-col gap-4">
+                        <h4 className="font-extrabold uppercase tracking-wide text-xs sm:text-sm text-[#1e2a4d]">Generate Recommendation Link</h4>
+                        <div className="flex flex-col sm:flex-row gap-3 items-end">
+                          <div className="flex-1 w-full">
+                            <label className="block text-[10px] font-black mb-1.5 uppercase tracking-wider">Recipient Name</label>
+                            <input
+                              type="text"
+                              value={recipientName}
+                              onChange={(e) => setRecipientName(e.target.value)}
+                              className="w-full px-3 py-2.5 rounded-lg text-[#233457] bg-white border border-[#233457]/20 focus:outline-none focus:ring-2 focus:ring-[#5ea0ff] focus:border-transparent transition-all"
+                              placeholder="e.g. Jane Doe (CEO at TechCorp)"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleGenerateLink}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 font-bold text-white active:translate-y-0.5 transition shadow-md w-full sm:w-auto shrink-0 cursor-pointer"
+                            style={{
+                              border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                              background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 12px -8px rgba(0,0,0,0.6)",
+                            }}
+                          >
+                            Generate Link
+                          </button>
+                        </div>
+
+                        {/* Generated Link Display */}
+                        {generatedLink && (
+                          <div className="rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Link Generated successfully:</div>
+                              <div className="text-xs text-[#233457]/80 truncate font-mono select-all mt-0.5">{generatedLink}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(generatedLink);
+                                showToast("Link copied to clipboard!", "success");
+                              }}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow cursor-pointer transition-colors"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                              </svg>
+                              <span>Copy</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Invitations List */}
+                      <div>
+                        <h4 className="font-extrabold uppercase tracking-wide text-xs sm:text-sm text-[#1e2a4d] mb-3">Active Invite Links</h4>
+                        <div className="space-y-3">
+                          {activeInviteTokens.map((token) => {
+                            const origin = typeof window !== "undefined" ? window.location.origin : "";
+                            const url = `${origin}/recommendation?token=${token.token}`;
+                            return (
+                              <div
+                                key={token.token}
+                                className={`rounded-lg p-3 border border-[#233457]/15 bg-white/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                                  token.used ? "opacity-50" : ""
+                                }`}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-sm text-[#233457]">{token.recipientName || "Friend"}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase text-white ${
+                                      token.used ? "bg-gray-500" : "bg-emerald-500"
+                                    }`}>
+                                      {token.used ? "Used / Submitted" : "Pending Review"}
+                                    </span>
+                                  </div>
+                                  <div className="text-[10px] text-[#233457]/60 truncate font-mono select-all mt-0.5">{url}</div>
+                                </div>
+                                <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                                  {!token.used && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(url);
+                                        showToast("Link copied to clipboard!", "success");
+                                      }}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-[#2f66d0] text-white font-bold text-xs shadow hover:bg-[#1d4ed8] cursor-pointer transition-colors"
+                                    >
+                                      <span>Copy Link</span>
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRevokeToken(token.token)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-red-500 text-white font-bold text-xs shadow hover:bg-red-600 cursor-pointer transition-colors"
+                                    title="Revoke / Delete invite link"
+                                  >
+                                    <span>Revoke</span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {activeInviteTokens.length === 0 && (
+                            <div className="text-center py-6 text-[#233457]/60 text-xs sm:text-sm">
+                              No invite links generated yet. Use the form above to invite someone!
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-[#233457]/20 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
-                  style={{
-                    border: "1px solid color-mix(in oklab, var(--accent) 55%, #8f6a12 45%)",
-                    background: "linear-gradient(180deg, color-mix(in oklab, var(--accent) 92%, white 6%), color-mix(in oklab, var(--accent) 70%, #b68b1a 30%))",
-                    boxShadow: "inset 0 2px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span>Save Changes</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
-                  style={{
-                    border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
-                    background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span>Cancel</span>
-                </button>
-              </div>
             </div>
+
+            {/* Modal Bottom Footer Actions */}
+            <div className="flex flex-col sm:flex-row gap-2 px-4 py-4 border-t border-white/10 bg-slate-700/20 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleSave}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-3 sm:py-2.5 text-xs sm:text-sm font-black uppercase tracking-wider text-white active:translate-y-0.5 transition cr-glass-hover flex-1 cursor-pointer"
+                style={{
+                  border: "1px solid color-mix(in oklab, var(--accent) 55%, #8f6a12 45%)",
+                  background: "linear-gradient(180deg, color-mix(in oklab, var(--accent) 92%, white 6%), color-mix(in oklab, var(--accent) 70%, #b68b1a 30%))",
+                  boxShadow: "inset 0 2px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Save All Changes</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-3 sm:py-2.5 text-xs sm:text-sm font-black uppercase tracking-wider text-white active:translate-y-0.5 transition cr-glass-hover flex-1 cursor-pointer"
+                style={{
+                  border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
+                  background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 18px -10px rgba(0,0,0,0.55)",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Cancel</span>
+              </button>
+            </div>
+
           </div>
         </div>
       )}
@@ -548,7 +877,7 @@ export default function TestimonialsAdmin() {
                   setDeleteId(null);
                 }}
                 aria-label="Close"
-                className="grid place-items-center z-10"
+                className="grid place-items-center z-10 cursor-pointer"
                 style={{
                   position: "absolute",
                   right: 8,
@@ -562,7 +891,6 @@ export default function TestimonialsAdmin() {
                   border: "1px solid rgba(0,0,0,0.45)",
                 }}
               >
-                <span className="sr-only">Close</span>
                 <span className="text-white font-extrabold text-sm" style={{ textShadow: "0 1px 0 rgba(0,0,0,0.3)", lineHeight: 1 }}>x</span>
               </button>
             </div>
@@ -578,14 +906,14 @@ export default function TestimonialsAdmin() {
                   Are you sure you want to delete this testimonial? This action cannot be undone.
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 text-xs sm:text-sm font-bold">
                 <button
                   type="button"
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDeleteId(null);
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-white active:translate-y-0.5 transition cr-glass-hover flex-1 cursor-pointer"
                   style={{
                     border: "1px solid color-mix(in oklab, var(--cr-blue) 35%, white 10%)",
                     background: "linear-gradient(180deg, #5ea0ff 0%, #2f66d0 60%, #1e3a8a 100%)",
@@ -597,7 +925,7 @@ export default function TestimonialsAdmin() {
                 <button
                   type="button"
                   onClick={confirmDelete}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold text-white active:translate-y-0.5 transition cr-glass-hover flex-1"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 sm:px-4 py-2.5 text-white active:translate-y-0.5 transition cr-glass-hover flex-1 cursor-pointer"
                   style={{
                     border: "1px solid color-mix(in oklab, #ff6b6b 35%, white 10%)",
                     background: "linear-gradient(180deg, #ff6b6b 0%, #d14949 60%, #b73838 100%)",

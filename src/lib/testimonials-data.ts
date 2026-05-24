@@ -5,10 +5,21 @@ export interface Testimonial {
   id: string;
   quote: string;
   author: string;
+  position?: string;
+  approved?: boolean;
+  createdAt?: number;
+}
+
+export interface InviteToken {
+  token: string;
+  recipientName?: string;
+  createdAt: number;
+  used: boolean;
 }
 
 export interface TestimonialsData {
   testimonials: Testimonial[];
+  inviteTokens?: InviteToken[];
 }
 
 const DEFAULT_TESTIMONIALS_DATA: TestimonialsData = {
@@ -17,13 +28,20 @@ const DEFAULT_TESTIMONIALS_DATA: TestimonialsData = {
       id: "testimonial-1",
       quote: "Sonny's technical expertise is top‑notch, but what really sets him apart is his ability to understand business needs and translate them into scalable solutions.",
       author: "— at",
+      position: "Product Leader",
+      approved: true,
+      createdAt: 1716500000000,
     },
     {
       id: "testimonial-2",
       quote: "Thinks in systems, ships reliably, and elevates team velocity with practical patterns and tooling.",
       author: "— at",
+      position: "VP of Engineering",
+      approved: true,
+      createdAt: 1716500000000,
     },
   ],
+  inviteTokens: [],
 };
 
 const TESTIMONIALS_DOC_PATH = "portfolio/testimonials";
@@ -51,7 +69,16 @@ export async function getTestimonialsData(): Promise<TestimonialsData> {
           id: testimonial.id || `testimonial-${Date.now()}-${Math.random()}`,
           quote: testimonial.quote || "",
           author: testimonial.author || "",
+          position: testimonial.position || "",
+          approved: testimonial.approved !== false, // default true
+          createdAt: testimonial.createdAt || Date.now(),
         })) as Testimonial[],
+        inviteTokens: (data.inviteTokens || []).map((t: any) => ({
+          token: t.token || "",
+          recipientName: t.recipientName || "",
+          createdAt: t.createdAt || Date.now(),
+          used: !!t.used,
+        })) as InviteToken[],
       };
       console.log("[testimonials-data] Normalized data:", normalizedData);
       return normalizedData;
@@ -83,6 +110,15 @@ export async function saveTestimonialsData(data: TestimonialsData): Promise<void
         id: testimonial.id || `testimonial-${Date.now()}-${Math.random()}`,
         quote: testimonial.quote || "",
         author: testimonial.author || "",
+        position: testimonial.position || "",
+        approved: testimonial.approved !== false,
+        createdAt: testimonial.createdAt || Date.now(),
+      })),
+      inviteTokens: (data.inviteTokens || []).map((t) => ({
+        token: t.token || "",
+        recipientName: t.recipientName || "",
+        createdAt: t.createdAt || Date.now(),
+        used: !!t.used,
       })),
     };
     
@@ -97,3 +133,4 @@ export async function saveTestimonialsData(data: TestimonialsData): Promise<void
     throw error;
   }
 }
+

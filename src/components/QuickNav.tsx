@@ -34,6 +34,18 @@ export default function QuickNav() {
   // States and handlers for gamified image vault chests
   const [unlockedChests, setUnlockedChests] = useState<Record<string, boolean>>({});
   const [openingChests, setOpeningChests] = useState<Record<string, boolean>>({});
+  const [isSpidey, setIsSpidey] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const checkTheme = () => {
+      setIsSpidey(document.body.classList.contains("theme-spiderman"));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const unlockChest = (photoId: string) => {
     if (openingChests[photoId] || unlockedChests[photoId]) return;
@@ -503,28 +515,63 @@ export default function QuickNav() {
                                       boxShadow: "none",
                                     }}
                                   >
-                                    <div className="absolute -inset-6 bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_65%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className={`absolute -inset-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isSpidey ? 'bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.18),transparent_65%)]' : 'bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.14),transparent_65%)]'}`} />
                                     
                                     <div className="relative z-10 flex flex-col items-center gap-2 cr-chest-svg">
-                                      <svg viewBox="0 0 24 24" fill="none" className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 transition-transform duration-300 group-hover:scale-105">
-                                        <path d="M4 10V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3H4Z" fill="url(#lidGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
-                                        <path d="M4 10v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7H4Z" fill="url(#baseGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
-                                        <path d="M8 4v16M16 4v16" stroke="#854d0e" strokeWidth="1.5" opacity="0.8" />
-                                        <rect x="10" y="8" width="4" height="5" rx="1" fill="#facc15" stroke="#854d0e" strokeWidth="1" />
-                                        <circle cx="12" cy="10" r="0.8" fill="#000" />
-                                        <line x1="12" y1="10.8" x2="12" y2="12" stroke="#000" strokeWidth="1.2" strokeLinecap="round" />
-                                        <defs>
-                                          <linearGradient id="lidGradVisitor" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#f59e0b" />
-                                            <stop offset="100%" stopColor="#d97706" />
-                                          </linearGradient>
-                                          <linearGradient id="baseGradVisitor" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#d97706" />
-                                            <stop offset="100%" stopColor="#78350f" />
-                                          </linearGradient>
-                                        </defs>
-                                      </svg>
-                                      <span className="text-[10px] sm:text-xs font-black tracking-wider uppercase text-[#7c2d12] group-hover:text-amber-800 transition-all text-center px-1 mt-1">
+                                      {isSpidey ? (
+                                        <svg viewBox="0 0 24 24" fill="none" className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 transition-transform duration-300 group-hover:scale-105 filter drop-shadow-[0_4px_12px_rgba(239,68,68,0.25)]">
+                                          {/* Lid base */}
+                                          <path d="M4 10V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3H4Z" fill="url(#spideyLidGrad)" stroke="#ef4444" strokeWidth="1.5" />
+                                          {/* Base body */}
+                                          <path d="M4 10v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7H4Z" fill="url(#spideyBaseGrad)" stroke="#1d4ed8" strokeWidth="1.5" />
+                                          {/* Web contour lines */}
+                                          <path d="M4 7c4 1.5 12 1.5 16 0M4 14c4 1.5 12 1.5 16 0M4 17.5c4 1 12 1 16 0" stroke="rgba(255,255,255,0.25)" strokeWidth="0.8" strokeLinecap="round" />
+                                          <path d="M8 4c1 4 1 12 0 16M16 4c-1 4-1 12 0 16" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
+                                          
+                                          {/* Spider Symbol Badge in center */}
+                                          <g transform="translate(8.5, 8) scale(0.3)">
+                                            <ellipse cx="12" cy="12" rx="2.5" ry="3.5" fill="#ffffff" />
+                                            <circle cx="12" cy="7" r="1.6" fill="#ffffff" />
+                                            <path d="M10.5 11c-2.5-1-4.5-3-5-6M10.5 12.5c-3 .5-5 .5-6-2.5M10.5 13.5c-2.5 1.5-4.5 3.5-4 7M10.5 14.5c-1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                                            <path d="M13.5 11c2.5-1 4.5-3 5-6M13.5 12.5c3 .5 5 .5 6-2.5M13.5 13.5c2.5 1.5 4.5 3.5 4 7M13.5 14.5c1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+                                          </g>
+                                          
+                                          {/* Web shooter lens lock */}
+                                          <rect x="9.5" y="8.5" width="5" height="4.5" rx="1.5" fill="#040814" stroke="#ef4444" strokeWidth="1" />
+                                          <circle cx="12" cy="10.8" r="0.9" fill="#ef4444" className="animate-pulse" />
+                                          
+                                          <defs>
+                                            <linearGradient id="spideyLidGrad" x1="0" y1="0" x2="0" y2="1">
+                                              <stop offset="0%" stopColor="#ef4444" />
+                                              <stop offset="100%" stopColor="#b91c1c" />
+                                            </linearGradient>
+                                            <linearGradient id="spideyBaseGrad" x1="0" y1="0" x2="0" y2="1">
+                                              <stop offset="0%" stopColor="#1e3a8a" />
+                                              <stop offset="100%" stopColor="#0f172a" />
+                                            </linearGradient>
+                                          </defs>
+                                        </svg>
+                                      ) : (
+                                        <svg viewBox="0 0 24 24" fill="none" className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 transition-transform duration-300 group-hover:scale-105">
+                                          <path d="M4 10V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3H4Z" fill="url(#lidGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
+                                          <path d="M4 10v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-7H4Z" fill="url(#baseGradVisitor)" stroke="#eab308" strokeWidth="1.5" />
+                                          <path d="M8 4v16M16 4v16" stroke="#854d0e" strokeWidth="1.5" opacity="0.8" />
+                                          <rect x="10" y="8" width="4" height="5" rx="1" fill="#facc15" stroke="#854d0e" strokeWidth="1" />
+                                          <circle cx="12" cy="10" r="0.8" fill="#000" />
+                                          <line x1="12" y1="10.8" x2="12" y2="12" stroke="#000" strokeWidth="1.2" strokeLinecap="round" />
+                                          <defs>
+                                            <linearGradient id="lidGradVisitor" x1="0" y1="0" x2="0" y2="1">
+                                              <stop offset="0%" stopColor="#f59e0b" />
+                                              <stop offset="100%" stopColor="#d97706" />
+                                            </linearGradient>
+                                            <linearGradient id="baseGradVisitor" x1="0" y1="0" x2="0" y2="1">
+                                              <stop offset="0%" stopColor="#d97706" />
+                                              <stop offset="100%" stopColor="#78350f" />
+                                            </linearGradient>
+                                          </defs>
+                                        </svg>
+                                      )}
+                                      <span className={`text-[10px] sm:text-xs font-black tracking-wider uppercase transition-all text-center px-1 mt-1 ${isSpidey ? 'text-red-400 group-hover:text-red-300' : 'text-[#7c2d12] group-hover:text-amber-800'}`}>
                                         {photo.title ? `Unlock ${photo.title}` : `Vault Chest #${idx + 1}`}
                                       </span>
                                     </div>

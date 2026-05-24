@@ -22,7 +22,7 @@ function PeriodPill({ start, end }: { start: string; end?: string }) {
   );
 }
 
-function TimelineContent({ isModal = false, timeline }: { isModal?: boolean; timeline: Item[] }) {
+function TimelineContent({ isModal = false, timeline, isSpidey = false }: { isModal?: boolean; timeline: Item[]; isSpidey?: boolean }) {
   if (!timeline || timeline.length === 0) {
     return (
       <div className={isModal ? "text-[#233457]/60 text-xs sm:text-sm" : "text-white/60 text-xs sm:text-sm"}>
@@ -37,9 +37,12 @@ function TimelineContent({ isModal = false, timeline }: { isModal?: boolean; tim
       <div className="absolute left-3 top-0 bottom-0" aria-hidden>
         <div className="h-full w-px"
           style={{
-            background: isModal
-              ? "linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.08))"
-              : "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))",
+            background: isSpidey
+              ? "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 100%)"
+              : isModal
+                ? "linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.08))"
+                : "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))",
+            boxShadow: isSpidey ? "0 0 8px rgba(255,255,255,0.4)" : "none",
           }}
         />
       </div>
@@ -47,22 +50,41 @@ function TimelineContent({ isModal = false, timeline }: { isModal?: boolean; tim
         {timeline.map((item) => (
           <li key={`${item.role}-${item.start}`} className="relative pl-8 group">
             {/* node */}
-            <span
-              className="absolute left-2 top-1.5 h-3.5 w-3.5 rounded-full transition-transform duration-200 group-hover:scale-110"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 30%, #fff 0%, #d1d5db 25%, #9ca3af 55%, rgba(0,0,0,0.2) 100%)",
-                boxShadow: "0 0 0 2px rgba(255,255,255,0.16), 0 2px 8px rgba(0,0,0,0.45)",
-              }}
-              aria-hidden
-            />
+            {isSpidey ? (
+              <span
+                className="absolute left-1 top-1.5 h-5.5 w-5.5 rounded-full transition-transform duration-200 group-hover:scale-110 flex items-center justify-center z-10"
+                style={{
+                  background: "linear-gradient(135deg, #ef4444 0%, #991b1b 100%)",
+                  boxShadow: "0 0 0 2px rgba(255,255,255,0.8), 0 2px 10px rgba(239,68,68,0.5)",
+                }}
+                aria-hidden
+              >
+                <svg viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5 animate-pulse">
+                  <ellipse cx="12" cy="12" rx="2" ry="2.8" />
+                  <circle cx="12" cy="7.5" r="1.3" />
+                  <path d="M10.8 11.2c-1.5-.6-2.5-1.8-2.8-3.6M10.8 12.2c-1.8.3-3 .3-3.6-1.5M10.8 12.8c-1.5.9-2.5 2.1-2.2 4.2M10.8 13.4c-.9 1.2-1.5 2.7-.9 4.2" stroke="white" strokeWidth="1" strokeLinecap="round" />
+                  <path d="M13.2 11.2c1.5-.6 2.5-1.8 2.8-3.6M13.2 12.2c1.8.3 3 .3 3.6-1.5M13.2 12.8c1.5.9 2.5 2.1 2.2 4.2M13.2 13.4c.9 1.2 1.5 2.7.9 4.2" stroke="white" strokeWidth="1" strokeLinecap="round" />
+                </svg>
+              </span>
+            ) : (
+              <span
+                className="absolute left-2 top-1.5 h-3.5 w-3.5 rounded-full transition-transform duration-200 group-hover:scale-110"
+                style={{
+                  background:
+                    "radial-gradient(circle at 30% 30%, #fff 0%, #d1d5db 25%, #9ca3af 55%, rgba(0,0,0,0.2) 100%)",
+                  boxShadow: "0 0 0 2px rgba(255,255,255,0.16), 0 2px 8px rgba(0,0,0,0.45)",
+                }}
+                aria-hidden
+              />
+            )}
             {/* hover glow halo */}
             <span
               aria-hidden
-              className="absolute left-1 top-0 h-6 w-6 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-0 top-0.5 h-7 w-7 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"
               style={{
-                background:
-                  "radial-gradient(circle, color-mix(in oklab, var(--accent) 85%, white 10%) 0%, rgba(242,201,76,0.45) 45%, rgba(242,201,76,0.05) 75%, transparent 100%)",
+                background: isSpidey
+                  ? "radial-gradient(circle, rgba(59,130,246,0.85) 0%, rgba(239,68,68,0.4) 45%, transparent 75%)"
+                  : "radial-gradient(circle, color-mix(in oklab, var(--accent) 85%, white 10%) 0%, rgba(242,201,76,0.45) 45%, rgba(242,201,76,0.05) 75%, transparent 100%)",
                 filter: "saturate(1.2)",
               }}
             />
@@ -97,6 +119,18 @@ export default function Experience() {
   const timerRef = useRef<number | null>(null);
   const [timeline, setTimeline] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSpidey, setIsSpidey] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const checkTheme = () => {
+      setIsSpidey(document.body.classList.contains("theme-spiderman"));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   // Load experience data from Firebase on mount
   useEffect(() => {
@@ -204,7 +238,7 @@ export default function Experience() {
             </div>
           </div>
         ) : (
-          <TimelineContent timeline={timeline.filter((item) => item.showInQuickview !== false)} />
+          <TimelineContent timeline={timeline.filter((item) => item.showInQuickview !== false)} isSpidey={isSpidey} />
         )}
       </Card>
 
@@ -255,7 +289,7 @@ export default function Experience() {
                 border: "1px solid rgba(0,0,0,0.12)",
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.85)",
               }}>
-                <TimelineContent isModal={true} timeline={timeline} />
+                <TimelineContent isModal={true} timeline={timeline} isSpidey={isSpidey} />
               </div>
             </div>
           </div>

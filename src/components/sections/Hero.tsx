@@ -9,6 +9,18 @@ export default function Hero() {
   const [showReveal, setShowReveal] = useState(false);
   const [revealVars, setRevealVars] = useState<{ x: number; y: number; scale: number; rot: number } | null>(null);
   const avatarRef = useRef<HTMLButtonElement | null>(null);
+  const [isSpidey, setIsSpidey] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const checkTheme = () => {
+      setIsSpidey(document.body.classList.contains("theme-spiderman"));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [revealPhase, setRevealPhase] = useState<"legend" | "profile">("legend");
@@ -272,6 +284,30 @@ export default function Hero() {
               boxShadow: "0 0 0 2px color-mix(in oklab, var(--cr-blue) 40%, #0a1634 60%), 0 14px 28px -16px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.35)",
             }}
           >
+            {isSpidey && (
+              <div className="absolute inset-0 pointer-events-none z-30" style={{ opacity: 0.85 }}>
+                {/* Top-Left Web overlay */}
+                <svg viewBox="0 0 40 40" className="absolute top-0 left-0 w-8 h-8 text-white/50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                  <path d="M0,0 L0,25 C10,20 20,10 25,0 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M0,8 C4,7 7,4 8,0 M0,16 C8,14 14,8 16,0 M0,24 C12,20 20,12 24,0" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1,1" />
+                </svg>
+                {/* Top-Right Web overlay */}
+                <svg viewBox="0 0 40 40" className="absolute top-0 right-0 w-8 h-8 text-white/50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] transform rotate-90">
+                  <path d="M0,0 L0,25 C10,20 20,10 25,0 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M0,8 C4,7 7,4 8,0 M0,16 C8,14 14,8 16,0 M0,24 C12,20 20,12 24,0" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1,1" />
+                </svg>
+                {/* Bottom-Left Web overlay */}
+                <svg viewBox="0 0 40 40" className="absolute bottom-0 left-0 w-8 h-8 text-white/50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] transform -rotate-90">
+                  <path d="M0,0 L0,25 C10,20 20,10 25,0 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M0,8 C4,7 7,4 8,0 M0,16 C8,14 14,8 16,0 M0,24 C12,20 20,12 24,0" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1,1" />
+                </svg>
+                {/* Bottom-Right Web overlay */}
+                <svg viewBox="0 0 40 40" className="absolute bottom-0 right-0 w-8 h-8 text-white/50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] transform rotate-180">
+                  <path d="M0,0 L0,25 C10,20 20,10 25,0 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M0,8 C4,7 7,4 8,0 M0,16 C8,14 14,8 16,0 M0,24 C12,20 20,12 24,0" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1,1" />
+                </svg>
+              </div>
+            )}
             {!hasRevealed && (
               <div aria-hidden className="pointer-events-none absolute -inset-1 cr-tempt-ping" />
             )}
@@ -279,12 +315,22 @@ export default function Hero() {
               <Image src={data.profilePhoto} alt="Profile photo" fill className="object-cover" />
             ) : (
               <div className="absolute inset-0">
-                {/* purple base */}
                 <div className="absolute inset-0 grid place-items-center" style={{
-                  background: "linear-gradient(180deg, #a855f7 10%, #7c3aed 55%, #6d28d9 100%)",
+                  background: isSpidey
+                    ? "linear-gradient(180deg, #ef4444 10%, #1d4ed8 75%, #040814 100%)"
+                    : "linear-gradient(180deg, #a855f7 10%, #7c3aed 55%, #6d28d9 100%)",
                   boxShadow: "inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -3px 0 rgba(0,0,0,0.45)",
                 }}>
-                  <span className="clash-font text-white text-4xl sm:text-5xl font-extrabold" style={{ textShadow: "0 2px 0 rgba(0,0,0,0.35)" }}>?</span>
+                  {isSpidey ? (
+                    <svg viewBox="0 0 24 24" fill="white" className="w-16 h-16 drop-shadow-[0_0_8px_rgba(255,255,255,0.85)] filter animate-pulse">
+                      <ellipse cx="12" cy="11" rx="2.5" ry="3.5" />
+                      <circle cx="12" cy="6" r="1.6" />
+                      <path d="M10.5 10c-2.5-1-4.5-3-5-6M10.5 11.5c-3 .5-5 .5-6-2.5M10.5 12.5c-2.5 1.5-4.5 3.5-4 7M10.5 13.5c-1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+                      <path d="M13.5 10c2.5-1 4.5-3 5-6M13.5 11.5c3 .5 5 .5 6-2.5M13.5 12.5c2.5 1.5 4.5 3.5 4 7M13.5 13.5c1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <span className="clash-font text-white text-4xl sm:text-5xl font-extrabold" style={{ textShadow: "0 2px 0 rgba(0,0,0,0.35)" }}>?</span>
+                  )}
                 </div>
                 {/* rim glow */}
                 <div aria-hidden className="pointer-events-none absolute -inset-0.5 rounded-2xl" style={{
@@ -320,7 +366,16 @@ export default function Hero() {
                 >
                   {data.name}
                 </h1>
-                <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1 shrink-0" />
+                {isSpidey ? (
+                  <svg viewBox="0 0 24 24" className="w-7 h-7 -translate-y-0.5 shrink-0 filter drop-shadow-[0_1.5px_3px_rgba(239,68,68,0.7)] animate-pulse" fill="none">
+                    <path d="M12 2C6.48 2 2 6.48 2 12c0 4.14 2.52 7.7 6.13 9.24.47.2.87-.2.87-.7v-1.78c0-.6.38-1.12.94-1.3l.12-.04c1.28-.42 2.6-.42 3.88 0l.12.04c.56.18.94.7.94 1.3v1.78c0 .5.4.9.87.7C21.48 19.7 24 16.14 24 12c0-5.52-4.48-10-10-10z" fill="#ef4444" />
+                    <path d="M12 2v18M2 12h20M5 5l14 14M19 5L5 19" stroke="rgba(0, 0, 0, 0.45)" strokeWidth="0.8" />
+                    <path d="M7.5 9.5c0 0 1.5 2 4.5 2V10.5C12 10.5 9.5 9 7.5 9.5z" fill="#ffffff" stroke="#000000" strokeWidth="0.8" />
+                    <path d="M16.5 9.5c0 0-1.5 2-4.5 2V10.5C12 10.5 14.5 9 16.5 9.5z" fill="#ffffff" stroke="#000000" strokeWidth="0.8" />
+                  </svg>
+                ) : (
+                  <Image src="/cr-crown.svg" alt="Crown" width={28} height={18} className="-translate-y-1 shrink-0" />
+                )}
               </div>
               <div className="mt-2 flex items-start gap-2 text-white/85 text-xs sm:text-sm">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -525,15 +580,24 @@ export default function Hero() {
                 </div>
               )}
               <div className={`absolute inset-0 grid place-items-center transition-opacity duration-500 ${revealPhase === "legend" ? "opacity-100" : "opacity-0"}`}>
-                <span
-                  className="clash-font text-white text-8xl sm:text-9xl font-extrabold"
-                  style={{
-                    textShadow:
-                      "0 3px 0 rgba(0,0,0,0.35), 0 0 12px rgba(255,255,255,0.2)",
-                  }}
-                >
-                  ?
-                </span>
+                {isSpidey ? (
+                  <svg viewBox="0 0 24 24" fill="white" className="w-36 h-36 drop-shadow-[0_0_15px_rgba(255,255,255,0.85)] filter animate-pulse z-10">
+                    <ellipse cx="12" cy="11" rx="2.5" ry="3.5" />
+                    <circle cx="12" cy="6" r="1.6" />
+                    <path d="M10.5 10c-2.5-1-4.5-3-5-6M10.5 11.5c-3 .5-5 .5-6-2.5M10.5 12.5c-2.5 1.5-4.5 3.5-4 7M10.5 13.5c-1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+                    <path d="M13.5 10c2.5-1 4.5-3 5-6M13.5 11.5c3 .5 5 .5 6-2.5M13.5 12.5c2.5 1.5 4.5 3.5 4 7M13.5 13.5c1.5 2-2.5 4.5-1.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <span
+                    className="clash-font text-white text-8xl sm:text-9xl font-extrabold"
+                    style={{
+                      textShadow:
+                        "0 3px 0 rgba(0,0,0,0.35), 0 0 12px rgba(255,255,255,0.2)",
+                    }}
+                  >
+                    ?
+                  </span>
+                )}
               </div>
               {/* glass glare sweep once centered */}
               {isCentered && (
@@ -543,14 +607,18 @@ export default function Hero() {
               {celebrate && (
                 <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
                   <div className="cr-shockwave absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
-                  {Array.from({ length: 12 }).map((_, i) => (
+                  {Array.from({ length: 14 }).map((_, i) => (
                     <span
                       key={i}
                       className="cr-confetti absolute left-1/2 top-1/2"
                       style={{
-                        ["--tx"]: `${(Math.cos((i / 12) * Math.PI * 2) * (60 + (i % 3) * 18)).toFixed(0)}px`,
-                        ["--ty"]: `${(Math.sin((i / 12) * Math.PI * 2) * (-70 - (i % 3) * 16)).toFixed(0)}px`,
-                        background: ["#f2c94c", "#ffffff", "#b277ff"][i % 3],
+                        ["--tx"]: `${(Math.cos((i / 14) * Math.PI * 2) * (60 + (i % 3) * 22)).toFixed(0)}px`,
+                        ["--ty"]: `${(Math.sin((i / 14) * Math.PI * 2) * (-70 - (i % 3) * 20)).toFixed(0)}px`,
+                        background: isSpidey 
+                          ? ["#ef4444", "#ffffff", "#1d4ed8"][i % 3]
+                          : ["#f2c94c", "#ffffff", "#b277ff"][i % 3],
+                        height: isSpidey && i % 2 === 0 ? "16px" : "10px",
+                        width: isSpidey && i % 2 === 0 ? "2px" : "6px",
                         animationDelay: `${(i % 4) * 40}ms`,
                       } as unknown as React.CSSProperties}
                     />

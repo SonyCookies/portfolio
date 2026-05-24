@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 const STORAGE_KEY = "fontTheme"; // 'clash' | 'default'
+const THEME_STORAGE_KEY = "siteTheme"; // 'royale' | 'spiderman'
 
 interface FabMenuProps {
   showLogout?: boolean;
@@ -15,6 +16,7 @@ interface FabMenuProps {
 export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDefault, setIsDefault] = useState<boolean>(false);
+  const [siteTheme, setSiteTheme] = useState<"royale" | "spiderman">("royale");
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -34,6 +36,12 @@ export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) 
       const shouldDefault = saved === "default";
       setIsDefault(shouldDefault);
       applyClass(shouldDefault);
+
+      // Handle site theme
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      const activeTheme = savedTheme === "spiderman" ? "spiderman" : "royale";
+      setSiteTheme(activeTheme);
+      applyThemeClass(activeTheme);
     } catch {}
   }, []);
 
@@ -47,12 +55,31 @@ export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) 
     }
   };
 
+  const applyThemeClass = (theme: "royale" | "spiderman") => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    if (theme === "spiderman") {
+      body.classList.add("theme-spiderman");
+    } else {
+      body.classList.remove("theme-spiderman");
+    }
+  };
+
   const toggleFont = () => {
     const next = !isDefault;
     setIsDefault(next);
     applyClass(next);
     try {
       localStorage.setItem(STORAGE_KEY, next ? "default" : "clash");
+    } catch {}
+    setIsOpen(false);
+  };
+
+  const toggleTheme = (theme: "royale" | "spiderman") => {
+    setSiteTheme(theme);
+    applyThemeClass(theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {}
     setIsOpen(false);
   };
@@ -171,6 +198,64 @@ export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) 
           >
             Aa
           </span>
+        </button>
+
+        {/* Crown (Royale) Theme Toggle Button */}
+        <button
+          onClick={() => toggleTheme("royale")}
+          className="w-12 h-12 rounded-full shadow-lg active:translate-y-0.5 grid place-items-center transition-all duration-300"
+          style={{
+            background: "linear-gradient(180deg, #f2c94c 0%, #d9a800 60%, #b38600 100%)",
+            border: siteTheme === "royale" ? "2px solid #ffffff" : "1px solid rgba(255,255,255,0.25)",
+            boxShadow: siteTheme === "royale" 
+              ? "0 0 12px #f2c94c, inset 0 2px 0 rgba(255,255,255,0.4)"
+              : "0 10px 20px -10px rgba(0,0,0,0.55), inset 0 2px 0 rgba(255,255,255,0.35)",
+            opacity: isOpen && isMounted ? 1 : 0,
+            transform: isOpen && isMounted 
+              ? "translateY(0) scale(1)" 
+              : "translateY(0) scale(0)",
+            pointerEvents: isOpen && isMounted ? "auto" : "none",
+            transitionProperty: isMounted ? "opacity, transform" : "none",
+            transitionDuration: isMounted ? "0.25s, 0.3s" : "0s",
+            transitionTimingFunction: isMounted ? "cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease",
+            transitionDelay: isOpen && isMounted ? "0.15s, 0.15s" : "0.05s, 0.05s",
+          }}
+          aria-label="Use Original Theme"
+          title="Use Original Theme"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" fill="white" fillOpacity="0.25" />
+            <path d="M3 20h18a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1z" />
+          </svg>
+        </button>
+
+        {/* Spider Web (Spider-Man) Theme Toggle Button */}
+        <button
+          onClick={() => toggleTheme("spiderman")}
+          className="w-12 h-12 rounded-full shadow-lg active:translate-y-0.5 grid place-items-center transition-all duration-300"
+          style={{
+            background: "linear-gradient(180deg, #ef4444 0%, #dc2626 65%, #991b1b 100%)",
+            border: siteTheme === "spiderman" ? "2px solid #ffffff" : "1px solid rgba(255,255,255,0.25)",
+            boxShadow: siteTheme === "spiderman" 
+              ? "0 0 12px #ef4444, inset 0 2px 0 rgba(255,255,255,0.4)"
+              : "0 10px 20px -10px rgba(0,0,0,0.55), inset 0 2px 0 rgba(255,255,255,0.35)",
+            opacity: isOpen && isMounted ? 1 : 0,
+            transform: isOpen && isMounted 
+              ? "translateY(0) scale(1)" 
+              : "translateY(0) scale(0)",
+            pointerEvents: isOpen && isMounted ? "auto" : "none",
+            transitionProperty: isMounted ? "opacity, transform" : "none",
+            transitionDuration: isMounted ? "0.25s, 0.3s" : "0s",
+            transitionTimingFunction: isMounted ? "cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.34, 1.56, 0.64, 1)" : "ease",
+            transitionDelay: isOpen && isMounted ? "0.2s, 0.2s" : "0.05s, 0.05s",
+          }}
+          aria-label="Use Spider-Man Theme"
+          title="Use Spider-Man Theme"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19" />
+            <path d="M12 6c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6 2.7-6 6-6zM12 9c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3z" fill="white" fillOpacity="0.1" />
+          </svg>
         </button>
       </div>
 

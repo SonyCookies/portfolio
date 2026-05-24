@@ -66,7 +66,56 @@ const SIP_FINISHED_QUOTES: Record<Breed, string> = {
   calico: "Clean whiskers, happy calico! ✨🐈",
   tilapia: "Fully swam and hydrated! 🐠🌊",
 };
-
+const SPIDEY_QUOTES: Record<Breed, string[]> = {
+  ginger: [
+    "Sapot muna bago code! 🕷️🕸️",
+    "Hala, i-hire nyo na si Peter Parker para sa chimken! 🍗🕸️",
+    "With great power comes great... SonyCookies! 🍪🕸️",
+    "Spider-Cat, Spider-Cat, gumagawa ng web app! 🕸️💻",
+    "Bakit may sapot dito sa portfolio? Chariz! 🕷️😜",
+    "Please naman, i-hire nyo na si Spider-Man! 🕷️🥺",
+  ],
+  siamese: [
+    "Mew! I am Gwen Stacy's cat! 🕸️🐈",
+    "Coffee break muna habang nakasabit sa sapot! ☕🕸️",
+    "Ang bilis mag-swing ng amo ko sa Next.js! 🚀🕸️",
+    "Gusto mo ng spider-sense level UI? ⚡✨",
+    "Bakit di nyo pa tinatawagan si Spider-Man? 📲🕷️",
+    "Boss sa coding, pero alipin ng pusa! 👑🕸️",
+  ],
+  tuxedo: [
+    "Mrrrow... 🕶️🕷️",
+    "Suot ko itong symbiote suit ko ngayon. 🖤🕸️",
+    "Spider-sense is tingling! May bug ba? 🕷️⚡",
+    "I am the commander of the Spider-Verse! 👑",
+    "Huwag nang mag-hesitate, hire Spider-Sonny now! 🕶️🕷️",
+    "Amo ko si Miles Morales, elite coder yan! 🕸️✨",
+  ],
+  tabby: [
+    "Purr... I'm Mochi the Spider-Loaf! 🕷️🍞",
+    "Forehead M means 'Miles Morales'! 🕸️✨",
+    "Sapot rubs muna bago high-quality code! 💕🕷️",
+    "Sabi ni Uncle Ben, eat cookies. Agree! 🍪🕸️",
+    "Hoy recruiter! I-hire mo na si Peter, please! 🥺🕷️",
+    "Sonny-sense is tingling! Hire him! 🕸️💼",
+  ],
+  calico: [
+    "Mingo the Spider-Calico! 🎨🕸️",
+    "Spots ko colorful parang Spider-Verse portals! 🎨💫",
+    "Ang cute ko sa Spidey mask ko, diba? 🕷️✨",
+    "Paki-hire po amo ko para ma-spoil nya ako ng web-treats! 🥺🕸️",
+    "Walang jowa si amo, pero loyal sa Spider-Verse! 😜💔",
+    "Web-shooter performance, zero lags! ⚡🕸️",
+  ],
+  tilapia: [
+    "Mew! Maki the Spider-Fish Cat! 🐟🕷️",
+    "Isdang pusa na may sapot? Yes, that's me! 🐠🕸️",
+    "Lasang sapot ba ang SonyCookies? 🍪🕷️",
+    "Swimming through web pipelines! 🌊🕸️",
+    "Recruiter, i-hook mo na itong top-tier Spider-Dev! 🎣🕸️",
+    "Witty Spidey cat for a witty developer! 🐠🕸️",
+  ],
+};
 
 interface CatInstance {
   id: number;
@@ -530,7 +579,8 @@ export default function PetCompanion() {
 
           // 35% meow transition rate
           if (Math.random() < 0.35) {
-            const breedQuotes = quotes[cat.breed];
+            const isSpidey = typeof document !== "undefined" && document.body.classList.contains("theme-spiderman");
+            const breedQuotes = isSpidey ? SPIDEY_QUOTES[cat.breed] : quotes[cat.breed];
             bubbleText =
               nextState === "sleeping"
                 ? "Zzz... 😴"
