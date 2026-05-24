@@ -12,7 +12,9 @@ export function proxy(request: NextRequest) {
     const firstSegment = pathSegments[0];
     
     // Check if this segment matches our admin path (exact match or long random string)
-    const isAdminPath = firstSegment === ADMIN_PATH || (firstSegment.length > 10 && firstSegment.match(/^[a-z0-9]+$/i));
+    // Explicitly exclude public routes like 'recommendation' from being treated as admin paths
+    const isPublicRoute = firstSegment === 'recommendation';
+    const isAdminPath = !isPublicRoute && (firstSegment === ADMIN_PATH || (firstSegment.length > 10 && firstSegment.match(/^[a-z0-9]+$/i)));
     
     if (isAdminPath) {
       // Check for admin session cookie

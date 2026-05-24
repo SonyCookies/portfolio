@@ -38,22 +38,39 @@ function RecommendationFormContent() {
   // Validate Token on Mount
   useEffect(() => {
     const validateToken = async () => {
+      console.log("[recommendation] validateToken called. URL token:", token);
       if (!token) {
+        console.warn("[recommendation] No token query parameter provided in URL.");
         setLoading(false);
         return;
       }
 
       try {
+        console.log("[recommendation] Fetching testimonials data from Firestore...");
         const data = await getTestimonialsData();
+        console.log("[recommendation] Loaded data successfully:", data);
+        
         const activeTokens = data.inviteTokens || [];
-        const match = activeTokens.find((t) => t.token === token && !t.used);
+        console.log("[recommendation] Total invite tokens in DB:", activeTokens.length, activeTokens);
+        
+        const match = activeTokens.find((t) => {
+          const matchToken = t.token === token;
+          const matchUsed = !t.used;
+          console.log(`[recommendation] Checking token: "${t.token}" vs URL token: "${token}". Matches? ${matchToken}. Not used? ${matchUsed}`);
+          return matchToken && matchUsed;
+        });
+
+        console.log("[recommendation] Token matching result:", match);
 
         if (match) {
           setIsValidToken(true);
           setRecipientName(match.recipientName || "");
+          console.log("[recommendation] Token is valid! Recipient:", match.recipientName);
+        } else {
+          console.warn("[recommendation] No unused match found for URL token.");
         }
       } catch (error) {
-        console.error("Error validating token:", error);
+        console.error("[recommendation] Error validating token:", error);
       } finally {
         setLoading(false);
       }

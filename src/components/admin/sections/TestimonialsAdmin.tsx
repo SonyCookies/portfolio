@@ -187,8 +187,8 @@ export default function TestimonialsAdmin() {
     showToast("Testimonial approved! Don't forget to click 'Save Changes' to publish.", "success");
   };
 
-  // 2. Generate Invite Token Link
-  const handleGenerateLink = () => {
+  // 2. Generate Invite Token Link (Instantly saved to Firestore!)
+  const handleGenerateLink = async () => {
     if (!recipientName.trim()) {
       showToast("Please enter a recipient name first", "error");
       return;
@@ -205,23 +205,58 @@ export default function TestimonialsAdmin() {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const inviteUrl = `${origin}/recommendation?token=${tokenString}`;
     
-    setGeneratedLink(inviteUrl);
-    setFormData({
+    const updatedTokens = [newToken, ...(formData.inviteTokens || [])];
+    const updatedData = {
       ...formData,
-      inviteTokens: [newToken, ...(formData.inviteTokens || [])],
-    });
+      inviteTokens: updatedTokens,
+    };
 
-    setRecipientName("");
-    showToast("Invite Link generated successfully! Click 'Save Changes' to activate it.", "success");
+    const toastId = showToast("Generating & activating invite link...", "loading", 0);
+    try {
+      await saveTestimonialsData(updatedData);
+      
+      setFormData(updatedData);
+      setTestimonialsData(updatedData);
+      setGeneratedLink(inviteUrl);
+      setRecipientName("");
+      
+      updateToast(toastId, { 
+        message: "Invite Link generated and activated instantly!", 
+        type: "success",
+        progress: 100
+      });
+    } catch (error) {
+      console.error("Error generating link:", error);
+      removeToast(toastId);
+      showToast("Failed to save and activate link. Please try again.", "error");
+    }
   };
 
-  // 3. Delete/Revoke Invite Token
-  const handleRevokeToken = (token: string) => {
-    setFormData({
+  // 3. Delete/Revoke Invite Token (Instantly saved to Firestore!)
+  const handleRevokeToken = async (token: string) => {
+    const updatedTokens = (formData.inviteTokens || []).filter((t) => t.token !== token);
+    const updatedData = {
       ...formData,
-      inviteTokens: (formData.inviteTokens || []).filter((t) => t.token !== token),
-    });
-    showToast("Invitation link revoked successfully!", "success");
+      inviteTokens: updatedTokens,
+    };
+
+    const toastId = showToast("Revoking invitation...", "loading", 0);
+    try {
+      await saveTestimonialsData(updatedData);
+      
+      setFormData(updatedData);
+      setTestimonialsData(updatedData);
+      
+      updateToast(toastId, { 
+        message: "Invitation link revoked instantly!", 
+        type: "success",
+        progress: 100
+      });
+    } catch (error) {
+      console.error("Error revoking token:", error);
+      removeToast(toastId);
+      showToast("Failed to revoke link. Please try again.", "error");
+    }
   };
 
   // Drag and drop handlers for published testimonials
