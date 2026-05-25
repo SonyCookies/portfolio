@@ -66,9 +66,9 @@ export default function BeyondCoding() {
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
           }}
         >
-            <div className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+            <div className="text-white/85 text-xs sm:text-sm leading-relaxed whitespace-pre-line" style={{ textAlign: "justify" }}>
               {beyondCodingData.description || "No description available yet."}
-          </div>
+            </div>
           <div aria-hidden className="pointer-events-none absolute left-2 right-2 top-1 h-1 rounded-full" style={{
             background: "linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03))",
           }} />

@@ -91,7 +91,7 @@ export default function About() {
           }}
         />
 
-        <p className="text-white/85 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+        <p className="text-white/85 text-sm sm:text-base leading-relaxed whitespace-pre-line" style={{ textAlign: "justify" }}>
           {aboutData.content}
         </p>
       </div>

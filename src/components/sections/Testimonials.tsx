@@ -9,6 +9,13 @@ export default function Testimonials() {
   const [index, setIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Reset expansion when index changes
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [index]);
+
   const approvedTestimonials = (testimonialsData.testimonials || []).filter(t => t.approved !== false);
   const count = approvedTestimonials.length;
 
@@ -119,7 +126,47 @@ export default function Testimonials() {
     >
       <div className="relative" onMouseEnter={pauseAuto} onMouseLeave={resumeAuto}>
         <div className="min-h-[96px]">
-          <blockquote key={index} className="text-white/85 text-sm sm:text-base leading-relaxed transition-opacity duration-300">"{t.quote}"</blockquote>
+          <blockquote
+            key={index}
+            className="text-white/85 text-sm sm:text-base leading-relaxed transition-opacity duration-300"
+            style={{
+              textAlign: "justify",
+              ...(!isExpanded
+                ? {
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }
+                : {})
+            }}
+          >
+            "{t.quote}"
+          </blockquote>
+          {t.quote.length > 100 && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs font-semibold hover:text-white mt-1.5 flex items-center gap-1 transition-colors select-none cursor-pointer"
+              style={{ color: "#5ea0ff" }}
+            >
+              {isExpanded ? (
+                <>
+                  Show less
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  Show more
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </>
+              )}
+            </button>
+          )}
           <div className="mt-4 text-xs sm:text-sm text-white/60">
             {t.author}
             {t.position && ` — ${t.position}`}

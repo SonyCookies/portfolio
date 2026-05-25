@@ -130,7 +130,7 @@ export default function FabMenu({ showLogout = false, onLogout }: FabMenuProps) 
     : "linear-gradient(180deg, #a855f7 10%, #7c3aed 55%, #6d28d9 100%)";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 fab-menu-container">
+    <div className="fixed bottom-6 right-6 z-[1050] fab-menu-container">
       {/* Menu Items */}
       <div className="absolute bottom-0 right-0 flex flex-col-reverse gap-3 mb-16">
         {/* Logout Button - Always render to avoid hydration mismatch */}

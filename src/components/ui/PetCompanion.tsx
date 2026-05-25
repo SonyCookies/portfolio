@@ -870,9 +870,9 @@ export default function PetCompanion() {
           50% { opacity: 0.9; }
           100% { transform: translate(-12px, -18px) scale(1.1); opacity: 0; }
         }
-        @keyframes waterFlow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1) translateY(-0.8px); }
+        @keyframes waterRipple {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.08); opacity: 0.85; }
         }
         @keyframes catSip {
           0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -946,9 +946,9 @@ export default function PetCompanion() {
         .cr-sand-particle {
           animation: sandDust 0.5s ease-out infinite;
         }
-        .cr-water-stream {
-          transform-origin: bottom center;
-          animation: waterFlow 0.22s ease-in-out infinite;
+        .cr-water-ripple {
+          transform-origin: 22.5px 14px;
+          animation: waterRipple 2s ease-in-out infinite;
         }
       `
       }} />
@@ -1006,40 +1006,45 @@ export default function PetCompanion() {
         </svg>
       </div>
 
-      {/* Fixed Animated Water Fountain on baseline floor (right side) */}
+      {/* Fixed Premium Glassy Water Bowl on baseline floor (right side) */}
       <div
         className="fixed z-[997] select-none pointer-events-none transition-all duration-300 right-4 sm:right-[140px]"
         style={{
           bottom: "12px",
-          width: "40px",
-          height: "45px",
+          width: "45px",
+          height: "30px",
         }}
       >
-        <svg width="40" height="45" viewBox="0 0 40 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Main pedestal/bowl tank (sleek slate white plastic) */}
-          <path d="M5 25 L8 45 H32 L35 25 Z" fill="#e2e8f0" />
-          {/* Top bowl rim */}
-          <ellipse cx="20" cy="24" rx="15" ry="4" fill="#cbd5e1" />
-          <ellipse cx="20" cy="24" rx="13" ry="3" fill="#60a5fa" /> {/* Water pool */}
+        <svg width="45" height="30" viewBox="0 0 45 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Outer Bowl shadow */}
+          <ellipse cx="22.5" cy="24" rx="20" ry="4" fill="black" opacity="0.2" />
 
-          {/* Pedestal detail shadow */}
-          <path d="M12 28 C12 28 20 30 28 28" stroke="#94a3b8" strokeWidth="1.5" fill="none" />
-
-          {/* Central spout post */}
-          <rect x="18" y="14" width="4" height="10" fill="#94a3b8" />
+          {/* Glass Bowl Base (Semi-transparent white/blue glass) */}
+          <path d="M5 14 C5 24, 40 24, 40 14 Z" fill="rgba(255, 255, 255, 0.15)" stroke="rgba(255, 255, 255, 0.4)" strokeWidth="1.5" />
           
-          {/* Sparkling water dome spout */}
-          <ellipse cx="20" cy="14" rx="3.5" ry="1.5" fill="#93c5fd" />
+          {/* Water Volume (Glass filled with glowing blue water) */}
+          <path d="M6 14 C6 22, 39 22, 39 14 Z" fill="url(#waterBowlGrad)" opacity="0.9" />
+          
+          {/* Water Surface Rim (Sparkling ellipse) */}
+          <ellipse cx="22.5" cy="14" rx="16.5" ry="3.5" fill="#38bdf8" opacity="0.8" />
+          <ellipse cx="22.5" cy="14" rx="13.5" ry="2.5" fill="#e0f2fe" opacity="0.6" className="cr-water-ripple" />
 
-          {/* Animated bubbling water streams */}
-          <g className="cr-water-stream">
-            {/* Left flowing stream */}
-            <path d="M18 14 C14 15 11 19 11 23" stroke="#e0f2fe" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.85" />
-            {/* Right flowing stream */}
-            <path d="M22 14 C26 15 29 19 29 23" stroke="#e0f2fe" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.85" />
-            {/* Center bubbling dome */}
-            <circle cx="20" cy="12" r="2.5" fill="#f0f9ff" />
+          {/* Tiny Goldfish swimming inside */}
+          <g transform="translate(18, 12) scale(0.7)">
+            <path d="M0 2 C2 0, 5 0, 7 2 C9 4, 9 6, 7 8 C5 10, 2 10, 0 8 Z" fill="#f97316" /> {/* Body */}
+            <path d="M-2 0 L1 2 L-2 4 Z" fill="#ea580c" /> {/* Tail Fin */}
+            <circle cx="5" cy="4" r="0.6" fill="black" />
           </g>
+
+          {/* Glass Highlights (Specular shine reflection) */}
+          <path d="M8 18 Q12 23 20 23" stroke="rgba(255, 255, 255, 0.6)" strokeWidth="1" strokeLinecap="round" fill="none" />
+          
+          <defs>
+            <linearGradient id="waterBowlGrad" x1="22.5" y1="14" x2="22.5" y2="22" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#0284c7" />
+              <stop offset="100%" stopColor="#0369a1" />
+            </linearGradient>
+          </defs>
         </svg>
       </div>
 
@@ -1057,7 +1062,7 @@ export default function PetCompanion() {
                 transition: isDraggingYarn ? "none" : "transform 0.2s ease, left 0.1s linear, top 0.1s linear",
               }
             : {
-                right: typeof window !== "undefined" && window.innerWidth < 640 ? "16px" : "48px",
+                right: typeof window !== "undefined" && window.innerWidth < 640 ? "200px" : "200px",
                 bottom: "12px",
                 transition: "transform 0.2s ease",
               }

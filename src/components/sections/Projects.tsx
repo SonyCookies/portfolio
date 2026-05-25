@@ -63,7 +63,7 @@ function ProjectCard({ p, isModal = false }: { p: Project; isModal?: boolean }) 
               )}
             </div>
           </div>
-          <p className={`mt-1 text-xs sm:text-sm ${isModal ? "text-[#233457]/80" : "text-white/80"}`}>{p.desc}</p>
+          <p className={`mt-1 text-xs sm:text-sm ${isModal ? "text-[#233457]/80" : "text-white/80"}`} style={{ textAlign: "justify" }}>{p.desc}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {p.tags.map((t) => (
               <span

@@ -390,7 +390,7 @@ export default function QuickNav() {
                           </div>
                         ) : (
                           autobiographyParagraphs.map((paragraph, index) => (
-                            <p key={index} style={{ marginBottom: "1em" }}>
+                            <p key={index} style={{ marginBottom: "1em", textAlign: "justify" }}>
                               {paragraph}
                             </p>
                           ))
